@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useEffect,
   useCallback,
+  useState,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -175,9 +176,12 @@ function getSessionId(): string {
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const [mounted, setMounted] = useState(false);
 
   // Sync cart with server
   const syncCart = useCallback(async (items: CartItem[]) => {
+    if (typeof window === "undefined") return;
+
     try {
       const sessionId = getSessionId();
       const response = await fetch("/api/cart", {
@@ -202,6 +206,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Migrate cart when user logs in
   const migrateCart = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
     try {
       const sessionId = getSessionId();
       const response = await fetch("/api/cart/migrate", {
@@ -230,6 +236,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from server on mount
   const refreshCart = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const sessionId = getSessionId();
@@ -273,17 +281,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Sync cart with server whenever items change
   useEffect(() => {
-    if (state.items.length > 0) {
+    if (mounted && state.items.length > 0) {
       const timeoutId = setTimeout(() => {
         syncCart(state.items);
       }, 500); // Debounce sync operations
 
       return () => clearTimeout(timeoutId);
     }
-  }, [state.items, syncCart]);
+  }, [state.items, syncCart, mounted]);
 
   // Load cart on mount
   useEffect(() => {
+    setMounted(true);
     refreshCart();
   }, [refreshCart]);
 
@@ -296,6 +305,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     refreshCart,
     migrateCart,
   };
+
+  // Prevent hydration mismatch by providing consistent initial state
+  if (!mounted) {
+    return (
+      <CartContext.Provider
+        value={{
+          ...initialState,
+          addToCart,
+          updateQuantity,
+          removeFromCart,
+          clearCart,
+          refreshCart,
+          migrateCart,
+        }}
+      >
+        {children}
+      </CartContext.Provider>
+    );
+  }
 
   return (
     <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>

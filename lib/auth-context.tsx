@@ -32,6 +32,7 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const checkAuth = async () => {
     try {
@@ -39,15 +40,21 @@ export function AuthProvider({
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
       } else {
         setUser(null);
-        localStorage.removeItem("user");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("user");
+        }
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
-      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +74,9 @@ export function AuthProvider({
 
     const data = await response.json();
     setUser(data.user);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
 
     // Trigger cart migration callback
     if (onLogin) {
@@ -82,13 +91,34 @@ export function AuthProvider({
       console.error("Logout error:", error);
     } finally {
       setUser(null);
-      localStorage.removeItem("user");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user");
+      }
     }
   };
 
   useEffect(() => {
+    setMounted(true);
     checkAuth();
   }, []);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null,
+          isLoading: true,
+          login,
+          logout,
+          checkAuth,
+          onLogin,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 
   return (
     <AuthContext.Provider

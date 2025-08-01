@@ -1,62 +1,75 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { getCategories, getNavbarConfig, type Category, type NavbarConfig } from "@/lib/catalog"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  getCategories,
+  getNavbarConfig,
+  type Category,
+  type NavbarConfig,
+} from "@/lib/catalog";
 
 interface DynamicNavbarProps {
-  currentPath?: string
+  currentPath?: string;
 }
 
 export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [navbarConfig, setNavbarConfig] = useState<NavbarConfig | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [navbarConfig, setNavbarConfig] = useState<NavbarConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const loadNavbarData = () => {
       try {
-        const categoriesData = getCategories()
-        const configData = getNavbarConfig()
+        const categoriesData = getCategories();
+        const configData = getNavbarConfig();
 
-        setCategories(categoriesData)
-        setNavbarConfig(configData)
+        setCategories(categoriesData);
+        setNavbarConfig(configData);
       } catch (error) {
-        console.error("Failed to load navbar data:", error)
+        console.error("Failed to load navbar data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadNavbarData()
+    loadNavbarData();
 
     // Listen for storage changes to update navbar in real-time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "stylesage_categories" || e.key === "stylesage_navbar") {
-        loadNavbarData()
+        loadNavbarData();
       }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
     }
+  }, []);
 
-    window.addEventListener("storage", handleStorageChange)
-    return () => window.removeEventListener("storage", handleStorageChange)
-  }, [])
-
-  if (isLoading) {
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted || isLoading) {
     return (
       <nav className="hidden md:flex space-x-8">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div
+            key={i}
+            className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+          />
         ))}
       </nav>
-    )
+    );
   }
 
-  if (!navbarConfig) return null
+  if (!navbarConfig) return null;
 
   // Get active categories in order
   const activeCategories = categories
     .filter((cat) => cat.isActive && navbarConfig.categories.includes(cat.id))
-    .sort((a, b) => a.order - b.order)
+    .sort((a, b) => a.order - b.order);
 
   return (
     <nav className="hidden md:flex space-x-8">
@@ -90,5 +103,5 @@ export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
           </Link>
         ))}
     </nav>
-  )
+  );
 }

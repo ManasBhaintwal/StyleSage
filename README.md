@@ -5,22 +5,26 @@ A modern, full-stack e-commerce platform for custom t-shirts built with Next.js,
 ## Features
 
 ### 🛍️ E-commerce Core
+
 - **Dynamic Product Catalog**: Browse products by categories (Anime, Meme, Custom designs)
 - **Smart Shopping Cart**: Persistent cart with local storage and user session integration
 - **Secure Checkout**: Complete order processing with address management
 - **Order Management**: Track and manage customer orders
 
 ### 👤 User Authentication
+
 - **Multi-auth Support**: Email/password and Google OAuth integration
 - **Role-based Access**: User and admin role management
 - **Secure Sessions**: JWT-based authentication with HTTP-only cookies
 
 ### 🎨 Dynamic Content Management
+
 - **Admin Dashboard**: Manage products, categories, and orders
 - **Image Upload**: Cloudinary integration for product images
 - **Real-time Updates**: Dynamic product loading and filtering
 
 ### 🎯 User Experience
+
 - **Responsive Design**: Mobile-first design with Tailwind CSS
 - **Dark/Light Mode**: Theme toggle support
 - **Loading States**: Smooth loading experiences throughout the app
@@ -29,6 +33,7 @@ A modern, full-stack e-commerce platform for custom t-shirts built with Next.js,
 ## Tech Stack
 
 ### Frontend
+
 - **Next.js 14**: React framework with App Router
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Utility-first CSS framework
@@ -36,12 +41,14 @@ A modern, full-stack e-commerce platform for custom t-shirts built with Next.js,
 - **React Hook Form**: Form handling with validation
 
 ### Backend
+
 - **Next.js API Routes**: Server-side API endpoints
 - **MongoDB**: NoSQL database with Mongoose ODM
 - **JWT**: JSON Web Tokens for authentication
 - **bcryptjs**: Password hashing
 
 ### Services
+
 - **Cloudinary**: Image upload and management
 - **Google OAuth**: Third-party authentication
 
@@ -94,21 +101,25 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 ## Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/ManasBhaintwal/StyleSage.git
    cd StyleSage
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    - Copy `.env.example` to `.env.local`
    - Fill in your environment variables
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -119,24 +130,28 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 ## Key Features Implementation
 
 ### Cart Management
+
 - Persistent cart using localStorage
 - User session integration
 - Real-time cart updates
 - Cart migration on login
 
 ### Product Management
+
 - Category-based organization
 - Tag-based filtering
 - Image upload with Cloudinary
 - Dynamic product loading
 
 ### Authentication Flow
+
 - Email/password registration and login
 - Google OAuth integration
 - Protected routes with middleware
 - Role-based access control
 
 ### Admin Features
+
 - Product catalog management
 - Order processing
 - User management
@@ -145,18 +160,21 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/login` - User login
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/callback/google` - Google OAuth callback
 
 ### Products
+
 - `GET /api/products` - Get all products
 - `POST /api/products` - Create product (admin)
 - `PUT /api/products/[id]` - Update product (admin)
 - `DELETE /api/products/[id]` - Delete product (admin)
 
 ### Cart & Orders
+
 - `GET /api/cart` - Get user cart
 - `POST /api/cart` - Add to cart
 - `POST /api/checkout` - Process checkout
