@@ -31,7 +31,6 @@ const ProductSchema = new Schema<IProduct>(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -109,6 +108,7 @@ const ProductSchema = new Schema<IProduct>(
 );
 
 // Add indexes to schema
+ProductSchema.index({ slug: 1 }, { unique: true });
 ProductSchema.index({ category: 1, isActive: 1 });
 ProductSchema.index({ isFeatured: 1, isActive: 1 });
 
