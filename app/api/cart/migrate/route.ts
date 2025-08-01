@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import Cart, { ICartItem } from "@/lib/models/Cart";
 import { getUserFromToken } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/cart/migrate - Migrate guest cart to user cart when user logs in
 export async function POST(request: NextRequest) {
   try {

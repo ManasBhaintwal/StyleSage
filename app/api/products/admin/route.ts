@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
 
+export const dynamic = "force-dynamic";
+
 // Utility function to convert string to slug
 function createSlug(name: string): string {
   return name

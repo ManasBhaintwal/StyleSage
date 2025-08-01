@@ -109,7 +109,6 @@ const ProductSchema = new Schema<IProduct>(
 );
 
 // Add indexes to schema
-ProductSchema.index({ slug: 1 });
 ProductSchema.index({ category: 1, isActive: 1 });
 ProductSchema.index({ isFeatured: 1, isActive: 1 });
 

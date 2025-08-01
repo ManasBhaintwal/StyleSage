@@ -3,6 +3,8 @@ import connectDB from "@/lib/mongodb";
 import Cart, { type ICartItem } from "@/lib/models/Cart";
 import { getUserFromToken } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/cart - Get cart items
 export async function GET(request: NextRequest) {
   try {

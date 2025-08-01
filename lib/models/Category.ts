@@ -45,7 +45,6 @@ const CategorySchema = new Schema<ICategory>(
 );
 
 // Add indexes to schema
-CategorySchema.index({ slug: 1 });
 CategorySchema.index({ isActive: 1, order: 1 });
 
 // Export the model, ensuring we don't recompile if it already exists
