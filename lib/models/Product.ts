@@ -12,7 +12,7 @@ export interface IProduct extends Document {
   tags: string[];
   sizes: string[];
   colors: string[];
-  stock: number;
+  stock: { [size: string]: number };
   isActive: boolean;
   isFeatured: boolean;
   rating: number;
@@ -73,14 +73,14 @@ const ProductSchema = new Schema<IProduct>(
     colors: [
       {
         type: String,
-        required: true,
+        required: false,
       },
     ],
     stock: {
-      type: Number,
+      type: Map,
+      of: Number,
       required: true,
-      min: 0,
-      default: 0,
+      default: {},
     },
     isActive: {
       type: Boolean,

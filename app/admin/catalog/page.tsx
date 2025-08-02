@@ -54,8 +54,11 @@ import {
   type Product,
   type NavbarConfig,
 } from "@/lib/catalog";
+import { getTotalStock, normalizeStock } from "@/lib/stock-normalization";
 
 export default function AdminCatalogPage() {
+  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [navbarConfig, setNavbarConfig] = useState<NavbarConfig | null>(null);
@@ -92,7 +95,33 @@ export default function AdminCatalogPage() {
   });
 
   useEffect(() => {
-    loadData();
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && data.user.role === "admin") {
+            setUser(data.user);
+            loadData();
+          } else {
+            window.location.href =
+              "/auth?callbackUrl=" +
+              encodeURIComponent(window.location.pathname);
+          }
+        } else {
+          window.location.href =
+            "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        window.location.href =
+          "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const loadData = () => {
@@ -151,10 +180,11 @@ export default function AdminCatalogPage() {
 
   const handleCreateProduct = () => {
     try {
+      const sizes = productForm.sizes.split(",").map((s) => s.trim());
       const productData = {
         ...productForm,
         images: ["/placeholder.svg?height=400&width=400"],
-        sizes: productForm.sizes.split(",").map((s) => s.trim()),
+        sizes,
         colors:
           productForm.category === "custom"
             ? productForm.colors
@@ -166,6 +196,7 @@ export default function AdminCatalogPage() {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        stock: normalizeStock(productForm.stock, sizes),
         rating: 4.5,
         reviews: 0,
       };
@@ -182,9 +213,10 @@ export default function AdminCatalogPage() {
     if (!editingProduct) return;
 
     try {
+      const sizes = productForm.sizes.split(",").map((s) => s.trim());
       const productData = {
         ...productForm,
-        sizes: productForm.sizes.split(",").map((s) => s.trim()),
+        sizes,
         colors:
           productForm.category === "custom"
             ? productForm.colors
@@ -196,6 +228,7 @@ export default function AdminCatalogPage() {
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        stock: normalizeStock(productForm.stock, sizes),
       };
       const updated = updateProduct(editingProduct.id, productData);
       if (updated) {
@@ -282,7 +315,7 @@ export default function AdminCatalogPage() {
       price: product.price,
       originalPrice: product.originalPrice || 0,
       category: product.category,
-      stock: product.stock,
+      stock: getTotalStock(product.stock, product.sizes),
       isActive: product.isActive,
       isFeatured: product.isFeatured,
       sizes: product.sizes.join(","),
@@ -292,10 +325,25 @@ export default function AdminCatalogPage() {
     setProductDialog(true);
   };
 
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Loading...
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Access Denied
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            You need admin access to view this page.
+          </p>
+        </div>
       </div>
     );
   }
@@ -652,24 +700,27 @@ export default function AdminCatalogPage() {
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="category">Category</Label>
+                        <Label>Category</Label>
                         <select
-                          id="category"
                           value={productForm.category}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setProductForm({
                               ...productForm,
                               category: e.target.value,
-                            })
-                          }
-                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                            });
+                          }}
+                          className="w-full p-2 border rounded"
                         >
-                          <option value="">Select category</option>
-                          {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>
-                          ))}
+                          <option value="">Select Category</option>
+                          {["collections", "anime", "meme"].map((catId) => {
+                            const cat = categories.find((c) => c.id === catId);
+                            if (!cat) return null;
+                            return (
+                              <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                       <div>
@@ -797,10 +848,12 @@ export default function AdminCatalogPage() {
                         <TableCell>
                           <Badge
                             variant={
-                              product.stock > 0 ? "default" : "destructive"
+                              getTotalStock(product.stock, product.sizes) > 0
+                                ? "default"
+                                : "destructive"
                             }
                           >
-                            {product.stock}
+                            {getTotalStock(product.stock, product.sizes)}
                           </Badge>
                         </TableCell>
                         <TableCell>

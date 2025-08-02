@@ -43,8 +43,8 @@ interface Product {
   category: string;
   tags: string[];
   sizes: string[];
-  colors: string[];
-  stock: number;
+  // colors: string[]; // removed from form
+  stock: { [size: string]: number };
   isActive: boolean;
   isFeatured: boolean;
   rating: number;
@@ -61,29 +61,34 @@ interface ProductFormData {
   category: string;
   tags: string;
   sizes: string;
-  colors: string;
-  stock: string;
+  // colors: string; // removed from form
+  sizeStock: { [size: string]: string };
   isFeatured: boolean;
   isActive: boolean;
 }
 
 export default function AdminProductsPage() {
+  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [formData, setFormData] = useState<ProductFormData>({
+  const [formData, setFormData] = useState<
+    ProductFormData & { categories: string[] }
+  >({
     name: "",
     description: "",
     price: "",
     originalPrice: "",
     category: "",
+    categories: [],
     tags: "",
     sizes: "XS,S,M,L,XL,XXL",
-    colors: "Black,White,Navy",
-    stock: "10",
+    // colors: "Black,White,Navy", // removed from form
+    sizeStock: { XS: "10", S: "10", M: "10", L: "10", XL: "10", XXL: "10" },
     isFeatured: false,
     isActive: true,
   });
@@ -91,14 +96,48 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchProducts();
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user && data.user.role === "admin") {
+            setUser(data.user);
+            fetchProducts();
+          } else {
+            window.location.href =
+              "/auth?callbackUrl=" +
+              encodeURIComponent(window.location.pathname);
+          }
+        } else {
+          window.location.href =
+            "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        window.location.href =
+          "/auth?callbackUrl=" + encodeURIComponent(window.location.pathname);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       // For admin, we want to see all products (active and inactive)
-      const response = await fetch("/api/products?admin=true&limit=1000");
+      const response = await fetch(
+        `/api/products?admin=true&limit=1000&_t=${Date.now()}`,
+        {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -126,6 +165,35 @@ export default function AdminProductsPage() {
     }));
   };
 
+  const handleSizeStockChange = (size: string, stock: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizeStock: {
+        ...prev.sizeStock,
+        [size]: stock,
+      },
+    }));
+  };
+
+  const handleSizesChange = (sizesString: string) => {
+    const sizes = sizesString
+      .split(",")
+      .map((size) => size.trim())
+      .filter(Boolean);
+    const newSizeStock: { [size: string]: string } = {};
+
+    // Keep existing stock for sizes that still exist, set default for new sizes
+    sizes.forEach((size) => {
+      newSizeStock[size] = formData.sizeStock[size] || "10";
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      sizes: sizesString,
+      sizeStock: newSizeStock,
+    }));
+  };
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setSelectedImages(files);
@@ -138,10 +206,11 @@ export default function AdminProductsPage() {
       price: "",
       originalPrice: "",
       category: "",
+      categories: [],
       tags: "",
       sizes: "XS,S,M,L,XL,XXL",
-      colors: "Black,White,Navy",
-      stock: "10",
+      // colors: "Black,White,Navy", // removed from form
+      sizeStock: { XS: "10", S: "10", M: "10", L: "10", XL: "10", XXL: "10" },
       isFeatured: false,
       isActive: true,
     });
@@ -158,10 +227,14 @@ export default function AdminProductsPage() {
       price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() || "",
       category: product.category,
+      categories: product.category ? [product.category] : [],
       tags: product.tags.join(", "),
       sizes: product.sizes.join(", "),
-      colors: product.colors.join(", "),
-      stock: product.stock.toString(),
+      // colors: product.colors.join(", "), // removed from form
+      sizeStock: product.sizes.reduce((acc, size) => {
+        acc[size] = (product.stock[size] || 0).toString();
+        return acc;
+      }, {} as { [size: string]: string }),
       isFeatured: product.isFeatured,
       isActive: product.isActive,
     });
@@ -176,7 +249,7 @@ export default function AdminProductsPage() {
       !formData.name ||
       !formData.description ||
       !formData.price ||
-      !formData.category
+      (!formData.category && formData.categories.length === 0)
     ) {
       toast({
         title: "Error",
@@ -209,11 +282,16 @@ export default function AdminProductsPage() {
       if (formData.originalPrice) {
         submitData.append("originalPrice", formData.originalPrice);
       }
-      submitData.append("category", formData.category);
+      submitData.append(
+        "category",
+        formData.categories.length > 0
+          ? formData.categories[0]
+          : formData.category
+      );
       submitData.append("tags", formData.tags);
       submitData.append("sizes", formData.sizes);
-      submitData.append("colors", formData.colors);
-      submitData.append("stock", formData.stock);
+      // submitData.append("colors", formData.colors); // removed from form
+      submitData.append("sizeStock", JSON.stringify(formData.sizeStock));
       submitData.append("isFeatured", formData.isFeatured.toString());
 
       if (editingProduct) {
@@ -265,8 +343,8 @@ export default function AdminProductsPage() {
       toast({
         title: "Success",
         description: editingProduct
-          ? "Product updated successfully"
-          : "Product created successfully",
+          ? "Product updated successfully. Changes will appear on the website within a few moments."
+          : "Product created successfully. Changes will appear on the website within a few moments.",
       });
 
       resetForm();
@@ -326,16 +404,37 @@ export default function AdminProductsPage() {
     total: products.length,
     active: products.filter((p) => p.isActive).length,
     featured: products.filter((p) => p.isFeatured).length,
-    totalValue: products.reduce((sum, p) => sum + p.price * p.stock, 0),
+    totalValue: products.reduce((sum, p) => {
+      const totalStock = Object.values(p.stock).reduce(
+        (stockSum, sizeStock) => stockSum + sizeStock,
+        0
+      );
+      return sum + p.price * totalStock;
+    }, 0),
   };
 
-  if (loading) {
+  if (isAuthLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600 dark:text-gray-400">
             Loading products...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Access Denied
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            You need admin access to view this page.
           </p>
         </div>
       </div>
@@ -349,13 +448,23 @@ export default function AdminProductsPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Product Management
           </h1>
-          <Button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={fetchProducts}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Package className="w-4 h-4" />
+              Refresh
+            </Button>
+            <Button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -436,22 +545,38 @@ export default function AdminProductsPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="category">Category *</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) =>
-                        handleInputChange("category", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="anime">Anime</SelectItem>
-                        <SelectItem value="meme">Meme</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Categories *</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {["collections", "anime", "meme"].map((catId) => (
+                        <label key={catId} className="flex items-center gap-1">
+                          <input
+                            type="checkbox"
+                            checked={
+                              Array.isArray(formData.categories) &&
+                              formData.categories.includes(catId)
+                            }
+                            onChange={(e) => {
+                              const currentCategories =
+                                formData.categories || [];
+                              const newCategories = e.target.checked
+                                ? [...currentCategories, catId]
+                                : currentCategories.filter(
+                                    (id) => id !== catId
+                                  );
+                              setFormData({
+                                ...formData,
+                                categories: newCategories,
+                                category:
+                                  newCategories.length > 0
+                                    ? newCategories[0]
+                                    : "",
+                              });
+                            }}
+                          />
+                          {catId.charAt(0).toUpperCase() + catId.slice(1)}
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -497,19 +622,6 @@ export default function AdminProductsPage() {
                       placeholder="0.00"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="stock">Stock *</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      value={formData.stock}
-                      onChange={(e) =>
-                        handleInputChange("stock", e.target.value)
-                      }
-                      placeholder="10"
-                      required
-                    />
-                  </div>
                 </div>
 
                 <div>
@@ -528,24 +640,38 @@ export default function AdminProductsPage() {
                     <Input
                       id="sizes"
                       value={formData.sizes}
-                      onChange={(e) =>
-                        handleInputChange("sizes", e.target.value)
-                      }
-                      placeholder="XS, S, M, L, XL, XXL"
+                      onChange={(e) => handleSizesChange(e.target.value)}
+                      placeholder="XS,S,M,L,XL,XXL"
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="colors">Colors (comma separated) *</Label>
-                    <Input
-                      id="colors"
-                      value={formData.colors}
-                      onChange={(e) =>
-                        handleInputChange("colors", e.target.value)
-                      }
-                      placeholder="Black, White, Navy"
-                      required
-                    />
+                </div>
+
+                <div>
+                  <Label>Stock by Size *</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-2">
+                    {formData.sizes
+                      .split(",")
+                      .map((size) => size.trim())
+                      .filter(Boolean)
+                      .map((size) => (
+                        <div key={size}>
+                          <Label htmlFor={`stock-${size}`} className="text-sm">
+                            {size}
+                          </Label>
+                          <Input
+                            id={`stock-${size}`}
+                            type="number"
+                            min="0"
+                            value={formData.sizeStock[size] || "0"}
+                            onChange={(e) =>
+                              handleSizeStockChange(size, e.target.value)
+                            }
+                            placeholder="0"
+                            required
+                          />
+                        </div>
+                      ))}
                   </div>
                 </div>
 
@@ -680,8 +806,21 @@ export default function AdminProductsPage() {
                             {product.category}
                           </Badge>
                           <span className="text-sm text-gray-600">
-                            Stock: {product.stock}
+                            Total Stock:{" "}
+                            {Object.values(product.stock).reduce(
+                              (sum, sizeStock) => sum + sizeStock,
+                              0
+                            )}
                           </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">
+                          {Object.entries(product.stock).map(
+                            ([size, stock]) => (
+                              <span key={size} className="mr-2">
+                                {size}: {stock}
+                              </span>
+                            )
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <Button

@@ -245,12 +245,14 @@ export default function CartPage() {
                     </div>
                   )}
 
-                  <Button
-                    size="lg"
-                    className="w-full mt-6 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-                  >
-                    Proceed to Checkout
-                  </Button>
+                  <Link href="/checkout">
+                    <Button
+                      size="lg"
+                      className="w-full mt-6 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                    >
+                      Proceed to Checkout
+                    </Button>
+                  </Link>
 
                   <div className="mt-6 space-y-3">
                     <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
@@ -261,52 +263,6 @@ export default function CartPage() {
                       <Shield className="w-4 h-4" />
                       <span>30-day money back guarantee</span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recommended Products */}
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 mt-6">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    You might also like
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      {
-                        name: "Vintage Anime Tee",
-                        price: 48,
-                        image: "/placeholder.svg?height=80&width=80",
-                      },
-                      {
-                        name: "Classic Meme Collection",
-                        price: 45,
-                        image: "/placeholder.svg?height=80&width=80",
-                      },
-                    ].map((product, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
-                          <Image
-                            src={product.image || "/placeholder.svg"}
-                            alt={product.name}
-                            width={64}
-                            height={64}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                            {product.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            ₹{product.price}
-                          </p>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          Add
-                        </Button>
-                      </div>
-                    ))}
                   </div>
                 </CardContent>
               </Card>

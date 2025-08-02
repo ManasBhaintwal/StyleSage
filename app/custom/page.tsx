@@ -87,7 +87,7 @@ export default function CustomPage() {
                 href="/"
                 className="text-2xl font-bold text-gray-900 dark:text-white"
               >
-                stylesage
+                StyleSage
               </Link>
               <Badge
                 variant="secondary"
@@ -280,14 +280,11 @@ export default function CustomPage() {
               </Button>
               {uploadedImage && (
                 <>
-                  <Button variant="outline" className="flex-1 bg-transparent">
-                    <Download className="w-4 h-4 mr-2" />
-                    Save Design
-                  </Button>
+                  
                   <AddToCart
                     productId="custom-design"
                     name={`Custom ${selectedColor} T-Shirt`}
-                    price={55}
+                    price={499}
                     image="/placeholder.svg?height=400&width=400&text=Custom+Design"
                     category="Custom"
                     defaultColor={selectedColor}
@@ -390,11 +387,11 @@ export default function CustomPage() {
                     Custom Premium T-Shirt
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    100% Organic Cotton •{" "}
+                    100% Cotton •{" "}
                     {tshirtColors.find((c) => c.value === selectedColor)?.name}
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    ₹4565.00
+                    ₹499.00
                   </p>
                 </div>
               </CardContent>

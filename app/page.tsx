@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/auth/user-menu";
 import { DynamicFeaturedProducts } from "@/components/dynamic-featured-products";
 import { CartBadge } from "@/components/cart-badge";
+import { DynamicNavbar } from "@/components/dynamic-navbar";
 
 export default function HomePage() {
   return (
@@ -29,43 +30,19 @@ export default function HomePage() {
               >
                 StyleSage
               </Link>
-              <nav className="hidden md:flex space-x-8">
-                <Link
-                  href="/collections"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Collections
-                </Link>
-                <Link
-                  href="/anime"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Anime
-                </Link>
-                <Link
-                  href="/meme"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Meme
-                </Link>
-                <Link
-                  href="/custom"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Custom
-                </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  About
-                </Link>
-              </nav>
+              <div className="hidden md:block">
+                <DynamicNavbar />
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              <UserMenu />
-              <CartBadge />
+              <div className="md:hidden">
+                <DynamicNavbar />
+              </div>
+              <div className="hidden md:flex items-center space-x-4">
+                <ThemeToggle />
+                <UserMenu />
+                <CartBadge />
+              </div>
             </div>
           </div>
         </div>
@@ -97,11 +74,14 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
+                  asChild
                   size="lg"
                   className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
                 >
-                  Shop Collection
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <Link href="/collections">
+                    Shop Collection
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
                 </Button>
                 <Button
                   variant="outline"
@@ -139,15 +119,17 @@ export default function HomePage() {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl overflow-hidden">
-                <Image
-                  src="/gokuTshirt.jpeg?height=600&width=600"
-                  alt="Premium T-Shirt Collection"
-                  width={600}
-                  height={600}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <Link href="/collections" className="block cursor-pointer">
+                <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
+                  <Image
+                    src="/gokuTshirt.jpeg?height=600&width=600"
+                    alt="Premium T-Shirt Collection"
+                    width={600}
+                    height={600}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </Link>
               <div className="absolute -bottom-6 -right-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg dark:shadow-gray-900/20 border dark:border-gray-700">
                 <div className="flex items-center space-x-2">
                   <div className="flex">
@@ -207,6 +189,94 @@ export default function HomePage() {
               <p className="text-gray-600 dark:text-gray-400">
                 Made from 100% organic and recycled materials
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-800 transition-colors">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+              Featured Collection
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Discover our most popular designs, crafted with premium materials
+              and modern aesthetics
+            </p>
+          </div>
+
+          <DynamicFeaturedProducts />
+
+          <div className="text-center mt-12">
+            <Link href="/collections">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-gray-300 dark:border-gray-600 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                View All Products
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Story */}
+      <section className="py-20 bg-white dark:bg-gray-900 transition-colors">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                Crafted for the
+                <span className="block">Modern Individual</span>
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+                Every thread tells a story of quality and craftsmanship. Our
+                t-shirts are made from premium organic cotton, ensuring comfort
+                that lasts and style that endures. We believe in creating pieces
+                that become part of your daily ritual.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    100% Cotton
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Ethically Manufactured
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Carbon Neutral Shipping
+                  </span>
+                </div>
+              </div>
+              <Link href="/about" className="mt-6 inline-block">
+                <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                  Learn Our Story
+                </Button>
+              </Link>
+            </div>
+            <div className="relative">
+              <Link href="/collections" className="block cursor-pointer">
+                <div className="aspect-[4/5] bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300">
+                  <Image
+                    src="/evolution.jpeg?height=600&width=480"
+                    alt="Our Manufacturing Process"
+                    width={480}
+                    height={600}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -287,120 +357,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800 transition-colors">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-              Featured Collection
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Discover our most popular designs, crafted with premium materials
-              and modern aesthetics
-            </p>
-          </div>
-
-          <DynamicFeaturedProducts />
-
-          <div className="text-center mt-12">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-gray-300 dark:border-gray-600 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              View All Products
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Brand Story */}
-      <section className="py-20 bg-white dark:bg-gray-900 transition-colors">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-6">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-                Crafted for the
-                <span className="block">Modern Individual</span>
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                Every thread tells a story of quality and craftsmanship. Our
-                t-shirts are made from premium organic cotton, ensuring comfort
-                that lasts and style that endures. We believe in creating pieces
-                that become part of your daily ritual.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    100% Organic Cotton
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Ethically Manufactured
-                  </span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Carbon Neutral Shipping
-                  </span>
-                </div>
-              </div>
-              <Button className="bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-                Learn Our Story
-              </Button>
-            </div>
-            <div className="relative">
-              <div className="aspect-[4/5] bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden">
-                <Image
-                  src="/evolution.jpeg?height=600&width=480"
-                  alt="Our Manufacturing Process"
-                  width={480}
-                  height={600}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="py-20 bg-gray-900 dark:bg-gray-800 transition-colors">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white">
-              Stay in the Loop
-            </h2>
-            <p className="text-lg text-gray-300 dark:text-gray-400">
-              Be the first to know about new collections, exclusive offers, and
-              style tips
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg border border-gray-700 dark:border-gray-600 bg-gray-800 dark:bg-gray-700 text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white dark:focus:ring-gray-400"
-              />
-              <Button className="bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-200 dark:text-gray-900 dark:hover:bg-gray-300">
-                Subscribe
-              </Button>
-            </div>
-            <p className="text-sm text-gray-400 dark:text-gray-500">
-              No spam, unsubscribe at any time
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 transition-colors">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="space-y-4">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                 StyleSage
@@ -416,16 +376,16 @@ export default function HomePage() {
               </h4>
               <div className="space-y-2">
                 <Link
-                  href="/men"
+                  href="/meme"
                   className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
-                  Men
+                  Meme
                 </Link>
                 <Link
-                  href="/women"
+                  href="/anime"
                   className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
-                  Women
+                  Anime
                 </Link>
                 <Link
                   href="/collections"
@@ -434,10 +394,10 @@ export default function HomePage() {
                   Collections
                 </Link>
                 <Link
-                  href="/sale"
+                  href="/custom"
                   className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
-                  Sale
+                  Custom
                 </Link>
               </div>
             </div>
@@ -472,41 +432,10 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white">
-                Company
-              </h4>
-              <div className="space-y-2">
-                <Link
-                  href="/about"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  About
-                </Link>
-                <Link
-                  href="/sustainability"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  Sustainability
-                </Link>
-                <Link
-                  href="/careers"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  Careers
-                </Link>
-                <Link
-                  href="/press"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  Press
-                </Link>
-              </div>
-            </div>
           </div>
           <div className="border-t border-gray-100 dark:border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              © 2024 StyleSage. All rights reserved.
+              © 2025 StyleSage. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 sm:mt-0">
               <Link

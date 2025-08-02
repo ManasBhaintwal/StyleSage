@@ -6,12 +6,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CombinedProviders } from "@/components/providers";
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { InitializeLocalStorage } from "@/components/initialize-storage";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "stylesage",
+  title: "StyleSage - Premium T-Shirts Redefined",
   description: "Premium t-shirts crafted for the modern individual",
   generator: "v0.dev",
 };
@@ -39,6 +40,7 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange={false}
         >
+          <InitializeLocalStorage />
           <CombinedProviders>
             {children}
             <Toaster />

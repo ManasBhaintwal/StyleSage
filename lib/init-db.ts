@@ -14,6 +14,9 @@ export async function initializeDatabase() {
     // Initialize default categories
     await initializeDefaultCategories();
 
+    // Migrate existing products to new stock structure
+    await migrateProductStock();
+
     // Initialize sample products
     await initializeSampleProducts();
 
@@ -64,6 +67,43 @@ async function initializeDefaultCategories() {
   }
 }
 
+async function migrateProductStock() {
+  try {
+    // Find all products that have old numeric stock structure
+    const products = await Product.find({});
+
+    for (const product of products) {
+      // Check if stock is a number (old structure)
+      if (typeof product.stock === "number") {
+        console.log(`🔄 Migrating stock for product: ${product.name}`);
+
+        // Create new stock structure based on sizes
+        const newStock: { [size: string]: number } = {};
+        const stockPerSize = Math.floor(product.stock / product.sizes.length);
+        const remainder = product.stock % product.sizes.length;
+
+        product.sizes.forEach((size: string, index: number) => {
+          newStock[size] = stockPerSize + (index < remainder ? 1 : 0);
+        });
+
+        // Update the product with new stock structure
+        await Product.updateOne(
+          { _id: product._id },
+          { $set: { stock: newStock } }
+        );
+
+        console.log(
+          `✅ Migrated stock for ${product.name}: ${JSON.stringify(newStock)}`
+        );
+      }
+    }
+
+    console.log("✅ Stock migration completed");
+  } catch (error) {
+    console.error("❌ Stock migration failed:", error);
+  }
+}
+
 async function initializeSampleProducts() {
   const sampleProducts = [
     {
@@ -76,7 +116,17 @@ async function initializeSampleProducts() {
       tags: ["essential", "basic", "cotton"],
       sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
       colors: [],
-      stock: 100,
+      stock: {
+        XS: 10,
+        S: 15,
+        M: 20,
+        L: 20,
+        XL: 15,
+        "2XL": 10,
+        "3XL": 5,
+        "4XL": 3,
+        "5XL": 2,
+      },
       isActive: true,
       isFeatured: true,
       rating: 4.8,
@@ -93,7 +143,17 @@ async function initializeSampleProducts() {
       tags: ["naruto", "anime", "hokage"],
       sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
       colors: [],
-      stock: 75,
+      stock: {
+        XS: 8,
+        S: 12,
+        M: 15,
+        L: 15,
+        XL: 12,
+        "2XL": 8,
+        "3XL": 3,
+        "4XL": 2,
+        "5XL": 0,
+      },
       isActive: true,
       isFeatured: true,
       rating: 4.9,
@@ -109,7 +169,17 @@ async function initializeSampleProducts() {
       tags: ["meme", "dog", "fine"],
       sizes: ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
       colors: [],
-      stock: 50,
+      stock: {
+        XS: 5,
+        S: 8,
+        M: 12,
+        L: 12,
+        XL: 8,
+        "2XL": 3,
+        "3XL": 2,
+        "4XL": 0,
+        "5XL": 0,
+      },
       isActive: true,
       isFeatured: true,
       rating: 4.9,
@@ -135,7 +205,17 @@ async function initializeSampleProducts() {
         "Gray",
         "Pink",
       ],
-      stock: 100,
+      stock: {
+        XS: 10,
+        S: 15,
+        M: 20,
+        L: 20,
+        XL: 15,
+        "2XL": 10,
+        "3XL": 5,
+        "4XL": 3,
+        "5XL": 2,
+      },
       isActive: true,
       isFeatured: true,
       rating: 4.9,

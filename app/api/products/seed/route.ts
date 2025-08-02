@@ -642,7 +642,19 @@ export async function PUT(request: NextRequest) {
         existingProduct.images = productData.images;
         existingProduct.description = productData.description;
         existingProduct.tags = productData.tags;
-        existingProduct.stock = productData.stock;
+        // Convert number stock to size-specific stock if needed
+        if (typeof productData.stock === "number") {
+          const stockPerSize = Math.floor(
+            productData.stock / existingProduct.sizes.length
+          );
+          const stockObj: { [size: string]: number } = {};
+          existingProduct.sizes.forEach((size) => {
+            stockObj[size] = stockPerSize;
+          });
+          existingProduct.stock = stockObj;
+        } else {
+          existingProduct.stock = productData.stock;
+        }
         existingProduct.isFeatured = productData.isFeatured;
         await existingProduct.save();
         updatedCount++;

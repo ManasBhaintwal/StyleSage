@@ -18,6 +18,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect } from "react";
 import { AddToCart } from "@/components/add-to-cart";
 import { CartBadge } from "@/components/cart-badge";
+import { normalizeStock, getTotalStock } from "@/lib/stock-normalization";
 
 interface Product {
   _id: string;
@@ -55,17 +56,28 @@ export default function AnimePage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/products?category=anime&isActive=true`
+          `/api/products?category=anime&isActive=true&_t=${Date.now()}`,
+          {
+            cache: "no-store",
+            headers: {
+              "Cache-Control": "no-cache",
+            },
+          }
         );
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
         const data = await response.json();
         setAnimeProducts(data.products);
-        // Initialize default sizes
+        // Initialize default sizes - select first available size
         const defaultSizes: Record<string, string> = {};
         data.products.forEach((product: Product) => {
-          defaultSizes[product._id] = product.sizes[0] || "M";
+          const normalizedStock = normalizeStock(product.stock, product.sizes);
+          // Find first size that's in stock
+          const availableSize = product.sizes.find(
+            (size) => (normalizedStock[size] || 0) > 0
+          );
+          defaultSizes[product._id] = availableSize || product.sizes[0] || "M";
         });
         setSelectedSizes(defaultSizes);
       } catch (err) {
@@ -77,6 +89,19 @@ export default function AnimePage() {
     };
 
     fetchAnimeProducts();
+
+    // Refresh when page becomes visible again
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchAnimeProducts();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   // Create categories based on tags from products
@@ -183,6 +208,12 @@ export default function AnimePage() {
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 Home
+              </Link>
+              <Link
+                href="/collections"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              >
+                Collections
               </Link>
               <Link
                 href="/anime"
@@ -297,7 +328,7 @@ export default function AnimePage() {
               return (
                 <Card
                   key={product._id}
-                  className={`group hover:shadow-lg transition-all duration-300 h-full flex flex-col ${
+                  className={`group hover:shadow-lg transition-all duration-300 h-full flex flex-col hover:scale-105 ${
                     viewMode === "list" ? "flex-row min-h-48" : "min-h-96"
                   }`}
                 >
@@ -317,7 +348,7 @@ export default function AnimePage() {
                         src={product.images[0] || "/placeholder.svg"}
                         alt={product.name}
                         fill
-                        className={`object-cover group-hover:scale-105 transition-transform duration-300 ${
+                        className={`object-cover transition-transform duration-300 ${
                           viewMode === "list" ? "rounded-l-lg" : "rounded-t-lg"
                         }`}
                       />
@@ -380,24 +411,37 @@ export default function AnimePage() {
                             Size:
                           </span>
                           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
-                            {product.sizes.map((size) => (
-                              <button
-                                key={size}
-                                onClick={() =>
-                                  setSelectedSizes((prev) => ({
-                                    ...prev,
-                                    [product._id]: size,
-                                  }))
-                                }
-                                className={`px-2 py-1 text-xs rounded border flex-shrink-0 transition-colors ${
-                                  selectedSizes[product._id] === size
-                                    ? "bg-blue-500 text-white border-blue-500"
-                                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                }`}
-                              >
-                                {size}
-                              </button>
-                            ))}
+                            {product.sizes.map((size) => {
+                              const normalizedStock = normalizeStock(
+                                product.stock,
+                                product.sizes
+                              );
+                              const isOutOfStock =
+                                (normalizedStock[size] || 0) === 0;
+                              return (
+                                <button
+                                  key={size}
+                                  onClick={() => {
+                                    if (!isOutOfStock) {
+                                      setSelectedSizes((prev) => ({
+                                        ...prev,
+                                        [product._id]: size,
+                                      }));
+                                    }
+                                  }}
+                                  disabled={isOutOfStock}
+                                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
+                                    isOutOfStock
+                                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                                      : selectedSizes[product._id] === size
+                                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
+                                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                  }`}
+                                >
+                                  {size}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
@@ -420,7 +464,7 @@ export default function AnimePage() {
                               ? product.colors
                               : ["Black"]
                           }
-                          stock={product.stock}
+                          stock={normalizeStock(product.stock, product.sizes)}
                           category={product.category}
                           variant="default"
                           size="sm"
@@ -429,12 +473,14 @@ export default function AnimePage() {
                         />
 
                         {/* Stock Information */}
-                        {product.stock <= 5 && product.stock > 0 && (
-                          <p className="text-orange-600 text-xs mt-1 text-center">
-                            Only {product.stock} left in stock!
-                          </p>
-                        )}
-                        {product.stock === 0 && (
+                        {getTotalStock(product.stock, product.sizes) <= 5 &&
+                          getTotalStock(product.stock, product.sizes) > 0 && (
+                            <p className="text-orange-600 text-xs mt-1 text-center">
+                              Only {getTotalStock(product.stock, product.sizes)}{" "}
+                              left in stock!
+                            </p>
+                          )}
+                        {getTotalStock(product.stock, product.sizes) === 0 && (
                           <p className="text-red-600 text-xs mt-1 text-center">
                             Out of stock
                           </p>

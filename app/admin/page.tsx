@@ -24,9 +24,38 @@ interface User {
   role: string;
 }
 
+interface OrderItem {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  size: string;
+}
+
+interface Order {
+  _id: string;
+  orderId: string;
+  userId: string;
+  items: OrderItem[];
+  address: {
+    fullName: string;
+    city: string;
+    state: string;
+  };
+  payment: {
+    amount: number;
+    status: string;
+  };
+  orderStatus: string;
+  total: number;
+  createdAt: string;
+}
+
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -35,6 +64,9 @@ export default function AdminPage() {
         if (userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
+          if (parsedUser.role === "admin") {
+            fetchOrders();
+          }
         }
       } catch (error) {
         console.error("Auth check failed:", error);
@@ -45,6 +77,42 @@ export default function AdminPage() {
 
     checkAuth();
   }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch("/api/orders?admin=true");
+      const data = await response.json();
+      if (data.success) {
+        setOrders(data.orders);
+      } else {
+        console.error("Failed to fetch orders:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const response = await fetch("/api/orders", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, orderStatus: newStatus }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Refresh orders
+        fetchOrders();
+      } else {
+        console.error("Failed to update order:", data.error);
+      }
+    } catch (error) {
+      console.error("Error updating order:", error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -84,24 +152,33 @@ export default function AdminPage() {
     );
   }
 
+  // Calculate real stats from orders
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const completedOrders = orders.filter(
+    (order) => order.payment.status === "completed"
+  ).length;
+  const uniqueCustomers = new Set(orders.map((order) => order.userId)).size;
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "₹37,48,571",
+      value: `₹${totalRevenue.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+      })}`,
       change: "+20.1%",
       icon: <DollarSign className="h-4 w-4" />,
       color: "text-green-600",
     },
     {
       title: "Orders",
-      value: "1,234",
+      value: orders.length.toString(),
       change: "+15.3%",
       icon: <ShoppingBag className="h-4 w-4" />,
       color: "text-blue-600",
     },
     {
       title: "Customers",
-      value: "892",
+      value: uniqueCustomers.toString(),
       change: "+8.2%",
       icon: <Users className="h-4 w-4" />,
       color: "text-purple-600",
@@ -115,36 +192,8 @@ export default function AdminPage() {
     },
   ];
 
-  const recentOrders = [
-    {
-      id: "#1234",
-      customer: "John Doe",
-      product: "Naruto Hokage Dreams",
-      amount: "₹3,984",
-      status: "Completed",
-    },
-    {
-      id: "#1235",
-      customer: "Jane Smith",
-      product: "Custom Anime Design",
-      amount: "₹4,565",
-      status: "Processing",
-    },
-    {
-      id: "#1236",
-      customer: "Mike Johnson",
-      product: "Doge Meme Tee",
-      amount: "₹3,652",
-      status: "Shipped",
-    },
-    {
-      id: "#1237",
-      customer: "Sarah Wilson",
-      product: "Attack on Titan Wings",
-      amount: "₹4,316",
-      status: "Pending",
-    },
-  ];
+  // Get recent orders (last 5)
+  const recentOrders = orders.slice(0, 5);
 
   const topProducts = [
     {
@@ -246,54 +295,112 @@ export default function AdminPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {order.id}
-                        </span>
-                        <Badge
-                          variant={
-                            order.status === "Completed"
-                              ? "default"
-                              : order.status === "Processing"
-                              ? "secondary"
-                              : order.status === "Shipped"
-                              ? "outline"
-                              : "destructive"
-                          }
-                        >
-                          {order.status}
-                        </Badge>
+              {ordersLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Loading orders...
+                  </p>
+                </div>
+              ) : recentOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No orders found
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentOrders.map((order, index) => {
+                    const getStatusBadgeVariant = (status: string) => {
+                      switch (status) {
+                        case "delivered":
+                          return "default";
+                        case "confirmed":
+                          return "secondary";
+                        case "shipped":
+                          return "outline";
+                        case "placed":
+                          return "destructive";
+                        default:
+                          return "secondary";
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={order._id}
+                        className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-gray-900 dark:text-white">
+                              {order.orderId}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <Badge
+                                variant={getStatusBadgeVariant(
+                                  order.orderStatus
+                                )}
+                              >
+                                {order.orderStatus.charAt(0).toUpperCase() +
+                                  order.orderStatus.slice(1)}
+                              </Badge>
+                              <select
+                                value={order.orderStatus}
+                                onChange={(e) =>
+                                  updateOrderStatus(
+                                    order.orderId,
+                                    e.target.value
+                                  )
+                                }
+                                className="text-xs bg-transparent border rounded px-2 py-1"
+                              >
+                                <option value="placed">Placed</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {order.address.fullName} - {order.address.city},{" "}
+                            {order.address.state}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500">
+                            {order.items.length} item
+                            {order.items.length > 1 ? "s" : ""} •{" "}
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            ₹{order.total.toFixed(2)}
+                          </p>
+                          <div className="flex space-x-1 mt-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                // TODO: Implement order details modal
+                                alert(
+                                  `Order Details: ${
+                                    order.orderId
+                                  }\nItems: ${order.items
+                                    .map((item) => item.title)
+                                    .join(", ")}\nTotal: ₹${order.total}`
+                                );
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {order.customer}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-500">
-                        {order.product}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {order.amount}
-                      </p>
-                      <div className="flex space-x-1 mt-1">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

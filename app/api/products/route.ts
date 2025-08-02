@@ -24,14 +24,14 @@ export async function GET(request: NextRequest) {
       filter.category = category;
     }
 
-    if (isFeatured !== null) {
+    if (isFeatured !== null && isFeatured !== "") {
       filter.isFeatured = isFeatured === "true";
     }
 
     // For admin requests, include both active and inactive products
     if (admin === "true") {
       // Don't filter by isActive for admin requests
-    } else if (isActive !== null) {
+    } else if (isActive !== null && isActive !== "") {
       filter.isActive = isActive === "true";
     } else {
       // Default to only active products unless explicitly requested
@@ -56,12 +56,21 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await Product.countDocuments(filter);
 
-    return NextResponse.json({
-      products,
-      total,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : products.length,
-    });
+    return NextResponse.json(
+      {
+        products,
+        total,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : products.length,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(

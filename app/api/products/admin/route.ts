@@ -2,8 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import { uploadImage, deleteImage } from "@/lib/cloudinary";
+import { getUserFromToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
+
+// Auth check function
+async function checkAdminAuth(request: NextRequest) {
+  const token = request.cookies.get("auth_token")?.value;
+  if (!token) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
+
+  const user = await getUserFromToken(token);
+  if (!user || user.role !== "admin") {
+    return NextResponse.json(
+      { error: "Admin access required" },
+      { status: 403 }
+    );
+  }
+
+  return user;
+}
 
 // Utility function to convert string to slug
 function createSlug(name: string): string {
@@ -41,6 +63,12 @@ function getPublicIdFromUrl(url: string): string {
 // POST /api/products/admin - Create new product
 export async function POST(request: NextRequest) {
   try {
+    // Check admin authentication
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response if auth failed
+    }
+
     await connectDB();
 
     const formData = await request.formData();
@@ -57,26 +85,44 @@ export async function POST(request: NextRequest) {
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean);
-    const sizes = (formData.get("sizes") as string)
+    const sizes = ((formData.get("sizes") as string) || "")
       .split(",")
       .map((size) => size.trim())
       .filter(Boolean);
-    const colors = (formData.get("colors") as string)
+    const colors = ((formData.get("colors") as string) || "")
       .split(",")
       .map((color) => color.trim())
       .filter(Boolean);
-    const stock = parseInt(formData.get("stock") as string);
+
+    // Parse sizeStock from JSON string
+    const sizeStockString = formData.get("sizeStock") as string;
+    const sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    const stock: { [size: string]: number } = {};
+
+    // Convert string values to numbers and ensure all sizes have stock
+    sizes.forEach((size) => {
+      stock[size] = parseInt(sizeStockData[size] || "0");
+    });
+
     const isFeatured = formData.get("isFeatured") === "true";
 
+    console.log("POST request data:", {
+      name,
+      description,
+      price,
+      originalPrice,
+      category,
+      tags,
+      sizes,
+      colors,
+      stock,
+      isFeatured,
+    });
+
+    console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
+
     // Validate required fields
-    if (
-      !name ||
-      !description ||
-      !price ||
-      !category ||
-      !sizes.length ||
-      !colors.length
-    ) {
+    if (!name || !description || !price || !category || !sizes.length) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -151,6 +197,12 @@ export async function POST(request: NextRequest) {
 // PUT /api/products/admin - Update existing product
 export async function PUT(request: NextRequest) {
   try {
+    // Check admin authentication
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response if auth failed
+    }
+
     console.log("PUT request received for product update");
     await connectDB();
 
@@ -169,15 +221,25 @@ export async function PUT(request: NextRequest) {
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean);
-    const sizes = (formData.get("sizes") as string)
+    const sizes = ((formData.get("sizes") as string) || "")
       .split(",")
       .map((size) => size.trim())
       .filter(Boolean);
-    const colors = (formData.get("colors") as string)
+    const colors = ((formData.get("colors") as string) || "")
       .split(",")
       .map((color) => color.trim())
       .filter(Boolean);
-    const stock = parseInt(formData.get("stock") as string);
+
+    // Parse sizeStock from JSON string for PUT request
+    const sizeStockString = formData.get("sizeStock") as string;
+    const sizeStockData = sizeStockString ? JSON.parse(sizeStockString) : {};
+    const stock: { [size: string]: number } = {};
+
+    // Convert string values to numbers and ensure all sizes have stock
+    sizes.forEach((size) => {
+      stock[size] = parseInt(sizeStockData[size] || "0");
+    });
+
     const isFeatured = formData.get("isFeatured") === "true";
     const isActive = formData.get("isActive") === "true";
     const keepExistingImages = formData.get("keepExistingImages") === "true";
@@ -199,6 +261,8 @@ export async function PUT(request: NextRequest) {
       hasNewImages: formData.getAll("newImages").length > 0,
     });
 
+    console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
+
     // Validate required fields
     if (
       !productId ||
@@ -206,8 +270,7 @@ export async function PUT(request: NextRequest) {
       !description ||
       isNaN(price) ||
       !category ||
-      !sizes.length ||
-      !colors.length
+      !sizes.length
     ) {
       console.error("Validation failed:", {
         productId: !!productId,
@@ -216,7 +279,6 @@ export async function PUT(request: NextRequest) {
         price: !isNaN(price),
         category: !!category,
         sizesLength: sizes.length,
-        colorsLength: colors.length,
       });
       return NextResponse.json(
         { error: "Missing required fields or invalid data" },
@@ -331,6 +393,12 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/products/admin - Delete product
 export async function DELETE(request: NextRequest) {
   try {
+    // Check admin authentication
+    const authResult = await checkAdminAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult; // Return error response if auth failed
+    }
+
     await connectDB();
 
     const { searchParams } = new URL(request.url);
