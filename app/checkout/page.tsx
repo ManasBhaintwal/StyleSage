@@ -44,9 +44,8 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const shipping = subtotal > 6225 ? 0 : 746;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const shipping = subtotal > 1199 ? 0 : 99;
+  const total = subtotal + shipping;
 
   useEffect(() => {
     // Check if user is authenticated
@@ -130,7 +129,6 @@ export default function CheckoutPage() {
         address,
         subtotal,
         shipping,
-        tax,
         total,
       };
 
@@ -396,10 +394,6 @@ export default function CheckoutPage() {
                   <span>
                     {shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}
                   </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Tax</span>
-                  <span>₹{tax.toFixed(2)}</span>
                 </div>
                 <hr className="border-gray-200 dark:border-gray-700" />
                 <div className="flex justify-between font-semibold">

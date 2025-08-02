@@ -19,14 +19,14 @@ export default function AboutPage() {
     {
       name: "Piyush Negi",
       role: "Co-Founder",
-      image: "/placeholder.svg?height=300&width=300&text=Piyush",
+      image: "/piyush.jpeg?height=300&width=300&text=Piyush",
       description:
         "Visionary leader with a passion for creative expression and inclusive fashion.",
     },
     {
       name: "Manish Singh",
       role: "Co-Founder",
-      image: "/placeholder.svg?height=300&width=300&text=Manish",
+      image: "/manish.jpeg?height=300&width=300&text=Manish",
       description:
         "Design genius who brings internet culture to life through premium apparel.",
     },
@@ -37,7 +37,7 @@ export default function AboutPage() {
       icon: <Heart className="w-8 h-8 text-red-500" />,
       title: "Inclusive Fashion",
       description:
-        "We believe everyone deserves premium quality, from XS to 5XL with the same attention to detail.",
+        "We believe everyone deserves premium quality, from XS to 3XL with the same attention to detail.",
     },
     {
       icon: <Zap className="w-8 h-8 text-yellow-500" />,
@@ -157,7 +157,7 @@ export default function AboutPage() {
                   className="text-purple-600 border-purple-600"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Founded 2023
+                  Founded 2025
                 </Badge>
                 <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
                   Born from Creativity,
@@ -181,7 +181,7 @@ export default function AboutPage() {
                   commitment to true inclusivity.
                 </p>
                 <p>
-                  From XS to 5XL, from classic memes to custom anime designs, we
+                  From XS to 3XL, from classic memes to custom anime designs, we
                   ensure the same premium quality and attention to detail.
                   Because great style shouldn't have size limits.
                 </p>
@@ -299,14 +299,14 @@ export default function AboutPage() {
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
               We're not just inclusive in name – we're inclusive in action. Our
-              plus size range (2XL-5XL) gets the same design attention, quality
+              plus size range (XL-3XL) gets the same design attention, quality
               materials, and style innovation as our regular sizes. Because
               great fashion should never be an afterthought.
             </p>
             <div className="grid md:grid-cols-3 gap-8 mb-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                  XS - 5XL
+                  XS - 3XL
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
                   Complete size range
@@ -329,12 +329,14 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <Button
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              Shop All Sizes
-            </Button>
+            <Link href="/">
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Shop All Sizes
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
   try {
-    const { userId, items, address, subtotal, shipping, tax, total } =
+    const { userId, items, address, subtotal, shipping, total } =
       await request.json();
 
     await connectDB();
@@ -66,7 +66,6 @@ export async function POST(request: Request) {
       orderStatus: "placed",
       subtotal,
       shipping,
-      tax,
       total,
     });
 

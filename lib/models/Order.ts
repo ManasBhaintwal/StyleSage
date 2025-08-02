@@ -34,7 +34,7 @@ export interface IOrder {
   orderStatus: "placed" | "confirmed" | "shipped" | "delivered" | "cancelled";
   subtotal: number;
   shipping: number;
-  tax: number;
+  tax?: number;
   total: number;
   cancelReason?: string;
   cancelledAt?: Date;
@@ -88,7 +88,7 @@ const OrderSchema = new mongoose.Schema(
     },
     subtotal: { type: Number, required: true },
     shipping: { type: Number, required: true },
-    tax: { type: Number, required: true },
+    tax: { type: Number, required: false, default: 0 },
     total: { type: Number, required: true },
     cancelReason: { type: String },
     cancelledAt: { type: Date },

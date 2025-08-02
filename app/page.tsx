@@ -165,7 +165,7 @@ export default function HomePage() {
                 Free Shipping
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Free shipping on orders over ₹6225 worldwide
+                Free shipping on orders over ₹1199 worldwide
               </p>
             </div>
             <div className="text-center space-y-4">
@@ -176,7 +176,7 @@ export default function HomePage() {
                 Quality Guarantee
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                30-day money back guarantee on all products
+                Money back if order cancelled before 7 days
               </p>
             </div>
             <div className="text-center space-y-4">
@@ -298,7 +298,7 @@ export default function HomePage() {
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                 We believe everyone deserves premium comfort. Our t-shirts are
-                available in sizes XS to 5XL, with the same attention to
+                available in sizes XS to 3XL, with the same attention to
                 quality, fit, and style across our entire size range.
               </p>
             </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
               <div className="text-center space-y-3">
                 <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto">
                   <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    XS-5XL
+                    XS-3XL
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

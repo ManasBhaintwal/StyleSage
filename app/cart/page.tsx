@@ -30,9 +30,8 @@ export default function CartPage() {
     isLoading,
   } = useCart();
 
-  const shipping = subtotal > 6225 ? 0 : 746; // 75 USD = 6225 INR, 8.99 USD = 746 INR
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const shipping = subtotal > 1199 ? 0 : 99; // Free shipping over ₹1199, else ₹99
+  const total = subtotal + shipping;
 
   if (isLoading) {
     return (
@@ -223,11 +222,6 @@ export default function CartPage() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Tax</span>
-                      <span>₹{tax.toFixed(2)}</span>
-                    </div>
-
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                       <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
                         <span>Total</span>
@@ -239,7 +233,7 @@ export default function CartPage() {
                   {shipping > 0 && (
                     <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <p className="text-sm text-blue-700 dark:text-blue-300">
-                        Add ₹{(6225 - subtotal).toFixed(2)} more for free
+                        Add ₹{(1199 - subtotal).toFixed(2)} more for free
                         shipping!
                       </p>
                     </div>
@@ -257,11 +251,11 @@ export default function CartPage() {
                   <div className="mt-6 space-y-3">
                     <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                       <Truck className="w-4 h-4" />
-                      <span>Free shipping on orders over ₹6225</span>
+                      <span>Free shipping on orders over ₹1199</span>
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                       <Shield className="w-4 h-4" />
-                      <span>30-day money back guarantee</span>
+                      <span>Money back if order cancelled before 7 days</span>
                     </div>
                   </div>
                 </CardContent>
