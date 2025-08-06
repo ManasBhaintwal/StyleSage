@@ -200,7 +200,7 @@ export default function AnimePage() {
               href="/"
               className="text-2xl font-bold text-gray-900 dark:text-white"
             >
-              TShirt Store
+              StyleSage
             </Link>
             <nav className="hidden md:flex space-x-6">
               <Link

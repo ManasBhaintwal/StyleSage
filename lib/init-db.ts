@@ -17,8 +17,8 @@ export async function initializeDatabase() {
     // Migrate existing products to new stock structure
     await migrateProductStock();
 
-    // Initialize sample products
-    await initializeSampleProducts();
+    // Initialize sample products - DISABLED to prevent automatic t-shirt generation
+    // await initializeSampleProducts();
 
     console.log("✅ Database initialized successfully");
   } catch (error) {
