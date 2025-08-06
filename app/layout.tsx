@@ -17,10 +17,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = createMetadata({
-  title:
-    "StyleSage - Premium Custom T-Shirts | Anime, Meme & Personalized Designs",
+  title: "Premium Custom T-Shirts | Anime, Meme & Personalized Designs",
   description:
-    "Shop premium custom t-shirts with anime, meme, and personalized designs. Quality organic cotton, inclusive sizing (XS-5XL), and fast shipping across India. Express your unique style with StyleSage.",
+    "Premium custom t-shirts with anime, meme & personalized designs. Quality organic cotton, XS-5XL sizing, fast India shipping.",
   keywords: [
     "custom t-shirts India",
     "anime t-shirts online",

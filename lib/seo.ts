@@ -5,7 +5,7 @@ export const siteConfig = {
   name: "StyleSage",
   description:
     "Premium custom t-shirts with anime, meme, and personalized designs. Quality materials, inclusive sizing, and fast shipping across India.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://stylesage.com",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://www.stylesage.me",
   siteName: "StyleSage - Premium T-Shirts",
   creator: "@StyleSageOfficial",
   authors: [
@@ -423,6 +423,11 @@ export function createMetadata({
     metadataBase: new URL(siteConfig.url),
     alternates: {
       canonical: url,
+    },
+    icons: {
+      icon: "/favicon.ico",
+      apple: "/favicon.ico",
+      shortcut: "/favicon.ico",
     },
     openGraph: {
       title: pageTitle,

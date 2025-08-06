@@ -268,6 +268,122 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Customer Testimonials */}
+        <section className="py-16 bg-gray-50 dark:bg-gray-800 transition-colors">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                What Our Customers Say
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                Join thousands of satisfied customers who love their StyleSage
+                experience
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 italic">
+                    "The anime designs are absolutely incredible! As a huge One
+                    Piece fan, I was blown away by the quality and attention to
+                    detail. Will definitely order more!"
+                  </p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                        AK
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        Arjun Kumar
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Mumbai, Maharashtra
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 italic">
+                    "Finally found meme t-shirts that don't look cheap! The
+                    quality is premium and the designs are hilarious. My friends
+                    keep asking where I got them!"
+                  </p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                        PS
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        Priya Sharma
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Delhi, NCR
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 italic">
+                    "The custom design service exceeded my expectations. They
+                    brought my artwork to life perfectly. Plus, the organic
+                    cotton feels amazing!"
+                  </p>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                        RG
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        Rahul Gupta
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Bangalore, Karnataka
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features */}
         <section className="py-16 bg-white dark:bg-gray-900 transition-colors">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -302,7 +418,16 @@ export default function HomePage() {
                   Sustainable
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Made from 100% organic and recycled materials
+                  Made from 100%{" "}
+                  <a
+                    href="https://www.organic-cotton.org/about-organic-cotton/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    organic cotton
+                  </a>{" "}
+                  and recycled materials
                 </p>
               </div>
             </div>
@@ -364,13 +489,27 @@ export default function HomePage() {
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
                     <span className="text-gray-700 dark:text-gray-300">
-                      Ethically Manufactured
+                      <a
+                        href="https://www.fairtrade.org.uk/what-is-fairtrade/what-fairtrade-does/ethical-trading/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        Ethically Manufactured
+                      </a>
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-gray-900 dark:bg-white rounded-full"></div>
                     <span className="text-gray-700 dark:text-gray-300">
-                      Carbon Neutral Shipping
+                      <a
+                        href="https://www.carbontrust.com/our-work-and-impact/guides-reports-and-tools/carbon-neutral-shipping"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        Carbon Neutral Shipping
+                      </a>
                     </span>
                   </div>
                 </div>
@@ -393,6 +532,199 @@ export default function HomePage() {
                   </div>
                 </Link>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Custom & Personalized Designs Section */}
+        <section className="py-20 bg-gray-50 dark:bg-gray-800 transition-colors">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-6 mb-16">
+              <div className="space-y-4">
+                <Badge
+                  variant="secondary"
+                  className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                >
+                  Custom Designs
+                </Badge>
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                  Custom & Personalized T-Shirt Designs
+                </h2>
+                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                  Create your unique style with our premium custom t-shirts.
+                  From anime-inspired designs to viral meme graphics and
+                  completely personalized artwork, StyleSage brings your
+                  creative vision to life with exceptional quality and attention
+                  to detail.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-8 shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-2xl">🎨</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Anime T-Shirts
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Express your otaku passion with premium anime designs. From
+                    classic series to the latest trending shows, our{" "}
+                    <a
+                      href="https://en.wikipedia.org/wiki/Anime_and_manga_fandom"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      anime culture
+                    </a>{" "}
+                    t-shirts feature high-quality prints that capture the
+                    essence of your favorite characters and moments.
+                  </p>
+                  <Link href="/anime" className="inline-block">
+                    <Button variant="outline" size="sm">
+                      Explore Anime Collection
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-8 shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-2xl">😂</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Meme T-Shirts
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Stay ahead of{" "}
+                    <a
+                      href="https://en.wikipedia.org/wiki/Internet_culture"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      internet culture
+                    </a>{" "}
+                    with our viral meme designs. From classic memes to trending
+                    formats, our collection captures the humor and creativity of
+                    online communities with premium quality printing.
+                  </p>
+                  <Link href="/meme" className="inline-block">
+                    <Button variant="outline" size="sm">
+                      Browse Meme Designs
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 rounded-xl p-8 shadow-sm border dark:border-gray-700">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Personalized Designs
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Create something truly unique with our personalized design
+                    service. Upload your artwork, add custom text, or work with
+                    our design team to create a one-of-a-kind t-shirt that
+                    reflects your individual style and personality.
+                  </p>
+                  <Link href="/custom" className="inline-block">
+                    <Button variant="outline" size="sm">
+                      Start Customizing
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-12 space-y-4">
+              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                All our custom and personalized t-shirts are printed on premium
+                organic cotton using eco-friendly inks. We ensure every design
+                maintains vibrant colors and sharp details that won't fade or
+                crack over time.
+              </p>
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Create Your Design
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Press & Recognition Section */}
+        <section className="py-16 bg-white dark:bg-gray-900 transition-colors">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center space-y-6 mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
+                Recognition & Awards
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                StyleSage has been recognized for innovation in custom apparel
+                and sustainable fashion practices
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">🏆</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Best Startup 2024
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Recognized as India's most innovative custom apparel startup
+                  by TechCrunch India
+                </p>
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">🌱</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Sustainability Leader
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Featured in Sustainable Fashion Week for our eco-friendly
+                  manufacturing processes
+                </p>
+              </div>
+
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">👥</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Community Choice
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Winner of People's Choice Award at India Fashion Week for
+                  anime-inspired designs
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Media inquiries and press kit available
+              </p>
+              <Button variant="outline" size="lg">
+                <Link href="/press" className="flex items-center">
+                  Download Press Kit
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
@@ -494,25 +826,25 @@ export default function HomePage() {
                     href="/meme"
                     className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
-                    Meme
+                    Meme Collection
                   </Link>
                   <Link
                     href="/anime"
                     className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
-                    Anime
+                    Anime Collection
                   </Link>
                   <Link
                     href="/collections"
                     className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
-                    Collections
+                    All Collections
                   </Link>
                   <Link
                     href="/custom"
                     className="block text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   >
-                    Custom
+                    Custom Orders
                   </Link>
                 </div>
               </div>
