@@ -40,7 +40,7 @@ interface Product {
   price: number;
   originalPrice?: number;
   images: string[];
-  category: string;
+  category: string[];
   tags: string[];
   sizes: string[];
   // colors: string[]; // removed from form
@@ -226,8 +226,8 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price.toString(),
       originalPrice: product.originalPrice?.toString() || "",
-      category: product.category,
-      categories: product.category ? [product.category] : [],
+      category: product.category.join(", "),
+      categories: product.category || [],
       tags: product.tags.join(", "),
       sizes: product.sizes.join(", "),
       // colors: product.colors.join(", "), // removed from form
@@ -285,7 +285,7 @@ export default function AdminProductsPage() {
       submitData.append(
         "category",
         formData.categories.length > 0
-          ? formData.categories[0]
+          ? formData.categories.join(",")
           : formData.category
       );
       submitData.append("tags", formData.tags);
@@ -596,7 +596,7 @@ export default function AdminProductsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="price">Price *</Label>
+                    <Label htmlFor="price">Sale Price *</Label>
                     <Input
                       id="price"
                       type="number"
@@ -610,7 +610,7 @@ export default function AdminProductsPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="originalPrice">Original Price</Label>
+                    <Label htmlFor="originalPrice">Markup Price</Label>
                     <Input
                       id="originalPrice"
                       type="number"

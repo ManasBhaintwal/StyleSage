@@ -35,7 +35,9 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="md:hidden">
+              <div className="md:hidden flex items-center space-x-1">
+                <UserMenu />
+                <CartBadge />
                 <DynamicNavbar />
               </div>
               <div className="hidden md:flex items-center space-x-4">

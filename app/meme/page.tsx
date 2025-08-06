@@ -29,7 +29,7 @@ interface Product {
   price: number;
   originalPrice?: number;
   images: string[];
-  category: string;
+  category: string[];
   tags: string[];
   sizes: string[];
   colors: string[];
@@ -455,12 +455,12 @@ export default function MemePage() {
                           }
                           defaultColor="Black"
                           colors={
-                            product.category.toLowerCase() === "custom"
+                            product.category.includes("custom")
                               ? product.colors
                               : ["Black"]
                           }
                           stock={normalizeStock(product.stock, product.sizes)}
-                          category={product.category}
+                          category={product.category.join(", ")}
                           variant="default"
                           size="sm"
                           className="w-full"

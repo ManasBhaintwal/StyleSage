@@ -8,7 +8,7 @@ export interface IProduct extends Document {
   price: number;
   originalPrice?: number;
   images: string[];
-  category: string;
+  category: string[];
   tags: string[];
   sizes: string[];
   colors: string[];
@@ -54,10 +54,13 @@ const ProductSchema = new Schema<IProduct>(
         required: true,
       },
     ],
-    category: {
-      type: String,
-      required: true,
-    },
+    category: [
+      {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    ],
     tags: [
       {
         type: String,

@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
     const originalPrice = formData.get("originalPrice")
       ? parseFloat(formData.get("originalPrice") as string)
       : undefined;
-    const category = formData.get("category") as string;
+    const category = ((formData.get("category") as string) || "")
+      .split(",")
+      .map((cat) => cat.trim())
+      .filter(Boolean);
     const tags = ((formData.get("tags") as string) || "")
       .split(",")
       .map((tag) => tag.trim())
@@ -122,7 +125,7 @@ export async function POST(request: NextRequest) {
     console.log("isFeatured type and value:", typeof isFeatured, isFeatured);
 
     // Validate required fields
-    if (!name || !description || !price || !category || !sizes.length) {
+    if (!name || !description || !price || !category.length || !sizes.length) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -216,7 +219,10 @@ export async function PUT(request: NextRequest) {
     const originalPrice = formData.get("originalPrice")
       ? parseFloat(formData.get("originalPrice") as string)
       : undefined;
-    const category = formData.get("category") as string;
+    const category = ((formData.get("category") as string) || "")
+      .split(",")
+      .map((cat) => cat.trim())
+      .filter(Boolean);
     const tags = ((formData.get("tags") as string) || "")
       .split(",")
       .map((tag) => tag.trim())
@@ -269,7 +275,7 @@ export async function PUT(request: NextRequest) {
       !name ||
       !description ||
       isNaN(price) ||
-      !category ||
+      !category.length ||
       !sizes.length
     ) {
       console.error("Validation failed:", {
@@ -277,7 +283,7 @@ export async function PUT(request: NextRequest) {
         name: !!name,
         description: !!description,
         price: !isNaN(price),
-        category: !!category,
+        category: !!category.length,
         sizesLength: sizes.length,
       });
       return NextResponse.json(

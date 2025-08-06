@@ -24,7 +24,7 @@ export default function AboutPage() {
         "Visionary leader with a passion for creative expression and inclusive fashion.",
     },
     {
-      name: "Manish Singh",
+      name: "Manish Kumar",
       role: "Co-Founder",
       image: "/manish.jpeg?height=300&width=300&text=Manish",
       description:

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const filter: any = {};
 
     if (category) {
-      filter.category = category;
+      filter.category = { $in: [category] };
     }
 
     if (isFeatured !== null && isFeatured !== "") {

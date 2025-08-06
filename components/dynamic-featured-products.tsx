@@ -24,7 +24,7 @@ interface ApiProduct {
   price: number;
   originalPrice?: number;
   images: string[];
-  category: string;
+  category: string[];
   tags: string[];
   sizes: string[];
   colors: string[];
@@ -272,12 +272,12 @@ export function DynamicFeaturedProducts() {
                           }
                           defaultColor="Black"
                           colors={
-                            product.category.toLowerCase() === "custom"
+                            product.category.includes("custom")
                               ? product.colors
                               : ["Black"]
                           }
                           stock={product.stock}
-                          category={product.category}
+                          category={product.category.join(", ")}
                           variant="default"
                           size="sm"
                           className="w-full"
@@ -313,8 +313,8 @@ export function DynamicFeaturedProducts() {
           );
         })}
       </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
+      <CarouselPrevious className="hidden md:flex" />
+      <CarouselNext className="hidden md:flex" />
     </Carousel>
   );
 }
