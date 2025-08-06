@@ -15,6 +15,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { type Product } from "@/lib/catalog";
+import { getTotalStock } from "@/lib/stock-normalization";
 
 interface ApiProduct {
   _id: string;
@@ -182,7 +183,8 @@ export function DynamicFeaturedProducts() {
                       </Button>
                       {product.originalPrice && (
                         <Badge className="absolute bottom-2 left-2 bg-green-500">
-                          Save ₹{product.originalPrice - product.price}
+                          Save ₹
+                          {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
                       )}
                     </div>
@@ -286,9 +288,10 @@ export function DynamicFeaturedProducts() {
 
                         {/* Stock Information */}
                         {(() => {
-                          const totalStock = Object.values(
-                            product.stock
-                          ).reduce((sum, sizeStock) => sum + sizeStock, 0);
+                          const totalStock = getTotalStock(
+                            product.stock,
+                            product.sizes
+                          );
                           return (
                             <>
                               {totalStock <= 5 && totalStock > 0 && (

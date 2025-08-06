@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Important pages for SEO
+Allow: /collections
+Allow: /anime
+Allow: /meme
+Allow: /custom
+Allow: /about
+Allow: /contact
+Allow: /faq
+
+# Block admin and sensitive areas
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+
+# Block debug and test pages
+Disallow: /debug-navbar
+Disallow: /image-test
+
+# Block private user areas
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
+Disallow: /payment
+
+Sitemap: https://yourdomain.com/sitemap.xml

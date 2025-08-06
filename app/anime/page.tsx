@@ -366,7 +366,8 @@ export default function AnimePage() {
                       </Button>
                       {product.originalPrice && (
                         <Badge className="absolute bottom-2 left-2 bg-green-500">
-                          Save ₹{product.originalPrice - product.price}
+                          Save ₹
+                          {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
                       )}
                     </div>

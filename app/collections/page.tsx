@@ -324,7 +324,8 @@ export default function CollectionsPage() {
                       </Button>
                       {product.originalPrice && (
                         <Badge className="absolute bottom-2 left-2 bg-green-500">
-                          Save ₹{product.originalPrice - product.price}
+                          Save ₹
+                          {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
                       )}
                     </div>
@@ -428,16 +429,26 @@ export default function CollectionsPage() {
                         />
 
                         {/* Stock Information */}
-                        {product.stock <= 5 && product.stock > 0 && (
-                          <p className="text-orange-600 text-xs mt-1 text-center">
-                            Only {product.stock} left in stock!
-                          </p>
-                        )}
-                        {product.stock === 0 && (
-                          <p className="text-red-600 text-xs mt-1 text-center">
-                            Out of stock
-                          </p>
-                        )}
+                        {(() => {
+                          const totalStock = getTotalStock(
+                            product.stock,
+                            product.sizes
+                          );
+                          return (
+                            <>
+                              {totalStock <= 5 && totalStock > 0 && (
+                                <p className="text-orange-600 text-xs mt-1 text-center">
+                                  Only {totalStock} left in stock!
+                                </p>
+                              )}
+                              {totalStock === 0 && (
+                                <p className="text-red-600 text-xs mt-1 text-center">
+                                  Out of stock
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </CardContent>

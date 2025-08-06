@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
+import { getTotalStock, normalizeStock } from "@/lib/stock-normalization";
 
 interface Product {
   _id: string;
@@ -405,10 +406,8 @@ export default function AdminProductsPage() {
     active: products.filter((p) => p.isActive).length,
     featured: products.filter((p) => p.isFeatured).length,
     totalValue: products.reduce((sum, p) => {
-      const totalStock = Object.values(p.stock).reduce(
-        (stockSum, sizeStock) => stockSum + sizeStock,
-        0
-      );
+      // Use the utility function to handle all stock formats properly
+      const totalStock = getTotalStock(p.stock, p.sizes);
       return sum + p.price * totalStock;
     }, 0),
   };
@@ -511,7 +510,7 @@ export default function AdminProductsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ₹{(stats.totalValue * 83).toLocaleString()}
+                ₹{stats.totalValue.toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -807,20 +806,17 @@ export default function AdminProductsPage() {
                           </Badge>
                           <span className="text-sm text-gray-600">
                             Total Stock:{" "}
-                            {Object.values(product.stock).reduce(
-                              (sum, sizeStock) => sum + sizeStock,
-                              0
-                            )}
+                            {getTotalStock(product.stock, product.sizes)}
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mb-2">
-                          {Object.entries(product.stock).map(
-                            ([size, stock]) => (
-                              <span key={size} className="mr-2">
-                                {size}: {stock}
-                              </span>
-                            )
-                          )}
+                          {Object.entries(
+                            normalizeStock(product.stock, product.sizes)
+                          ).map(([size, stock]) => (
+                            <span key={size} className="mr-2">
+                              {size}: {stock}
+                            </span>
+                          ))}
                         </div>
                         <div className="flex gap-2">
                           <Button

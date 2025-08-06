@@ -85,7 +85,7 @@ export default function AdminCatalogPage() {
     description: "",
     price: 0,
     originalPrice: 0,
-    category: "",
+    category: [] as string[],
     stock: 0,
     isActive: true,
     isFeatured: false,
@@ -185,13 +185,12 @@ export default function AdminCatalogPage() {
         ...productForm,
         images: ["/placeholder.svg?height=400&width=400"],
         sizes,
-        colors:
-          productForm.category === "custom"
-            ? productForm.colors
-                .split(",")
-                .map((c) => c.trim())
-                .filter(Boolean)
-            : [],
+        colors: productForm.category.includes("custom")
+          ? productForm.colors
+              .split(",")
+              .map((c) => c.trim())
+              .filter(Boolean)
+          : [],
         tags: productForm.tags
           .split(",")
           .map((t) => t.trim())
@@ -217,13 +216,12 @@ export default function AdminCatalogPage() {
       const productData = {
         ...productForm,
         sizes,
-        colors:
-          productForm.category === "custom"
-            ? productForm.colors
-                .split(",")
-                .map((c) => c.trim())
-                .filter(Boolean)
-            : [],
+        colors: productForm.category.includes("custom")
+          ? productForm.colors
+              .split(",")
+              .map((c) => c.trim())
+              .filter(Boolean)
+          : [],
         tags: productForm.tags
           .split(",")
           .map((t) => t.trim())
@@ -284,7 +282,7 @@ export default function AdminCatalogPage() {
       description: "",
       price: 0,
       originalPrice: 0,
-      category: "",
+      category: [],
       stock: 0,
       isActive: true,
       isFeatured: false,
@@ -701,27 +699,51 @@ export default function AdminCatalogPage() {
                       </div>
                       <div>
                         <Label>Category</Label>
-                        <select
-                          value={productForm.category}
-                          onChange={(e) => {
-                            setProductForm({
-                              ...productForm,
-                              category: e.target.value,
-                            });
-                          }}
-                          className="w-full p-2 border rounded"
-                        >
-                          <option value="">Select Category</option>
-                          {["collections", "anime", "meme"].map((catId) => {
-                            const cat = categories.find((c) => c.id === catId);
-                            if (!cat) return null;
-                            return (
-                              <option key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </option>
-                            );
-                          })}
-                        </select>
+                        <div className="space-y-2">
+                          {["collections", "anime", "meme", "custom"].map(
+                            (catId) => {
+                              const cat = categories.find(
+                                (c) => c.id === catId
+                              );
+                              if (!cat) return null;
+                              return (
+                                <div
+                                  key={cat.id}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    id={`category-${cat.id}`}
+                                    checked={productForm.category.includes(
+                                      cat.id
+                                    )}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setProductForm({
+                                          ...productForm,
+                                          category: [
+                                            ...productForm.category,
+                                            cat.id,
+                                          ],
+                                        });
+                                      } else {
+                                        setProductForm({
+                                          ...productForm,
+                                          category: productForm.category.filter(
+                                            (id) => id !== cat.id
+                                          ),
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  <Label htmlFor={`category-${cat.id}`}>
+                                    {cat.name}
+                                  </Label>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="sizes">Sizes (comma-separated)</Label>
@@ -737,7 +759,7 @@ export default function AdminCatalogPage() {
                           placeholder="XS,S,M,L,XL,2XL,3XL,4XL,5XL"
                         />
                       </div>
-                      {productForm.category === "custom" && (
+                      {productForm.category.includes("custom") && (
                         <div>
                           <Label htmlFor="colors">
                             Colors (comma-separated)
@@ -841,8 +863,13 @@ export default function AdminCatalogPage() {
                           {product.name}
                         </TableCell>
                         <TableCell>
-                          {categories.find((cat) => cat.id === product.category)
-                            ?.name || "Unknown"}
+                          {product.category
+                            .map(
+                              (catId) =>
+                                categories.find((cat) => cat.id === catId)?.name
+                            )
+                            .filter(Boolean)
+                            .join(", ") || "Unknown"}
                         </TableCell>
                         <TableCell>₹{product.price}</TableCell>
                         <TableCell>
