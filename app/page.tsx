@@ -16,6 +16,7 @@ import { DynamicFeaturedProducts } from "@/components/dynamic-featured-products"
 import { CartBadge } from "@/components/cart-badge";
 import { DynamicNavbar } from "@/components/dynamic-navbar";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/seo";
 import {
   createMetadata,
   generateWebsiteStructuredData,
@@ -24,6 +25,8 @@ import {
   generateReviewAggregateStructuredData,
 } from "@/lib/seo";
 
+// Explicitly provide social share images so platforms (incl. WhatsApp) instantly resolve preview.
+// We include both the dynamic Open Graph image endpoint and a static fallback (if added later).
 export const metadata: Metadata = createMetadata({
   title:
     "StyleSage - Premium Custom T-Shirts | Anime, Meme & Personalized Designs",
@@ -40,6 +43,11 @@ export const metadata: Metadata = createMetadata({
     "graphic tees India",
     "streetwear",
     "otaku clothing",
+  ],
+  images: [
+    `${siteConfig.url}/opengraph-image.png`,
+    `${siteConfig.url}/twitter-image.png`,
+    `${siteConfig.url}/og-image.png`, // fallback static (ensure file exists later if desired)
   ],
 });
 
