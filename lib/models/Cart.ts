@@ -73,12 +73,21 @@ const CartSchema = new Schema<ICart>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Create compound index for efficient queries
 CartSchema.index({ userId: 1 });
 CartSchema.index({ sessionId: 1 });
+
+// TTL index: expire guest carts after 30 days of inactivity
+CartSchema.index(
+  { updatedAt: 1 },
+  {
+    expireAfterSeconds: 30 * 24 * 60 * 60,
+    partialFilterExpression: { userId: null },
+  },
+);
 
 const Cart = mongoose.models.Cart || mongoose.model<ICart>("Cart", CartSchema);
 

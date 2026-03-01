@@ -54,7 +54,7 @@ export function AddToCart({
       ? colors.includes(defaultColor)
         ? defaultColor
         : colors[0]
-      : defaultColor || "Black" // Fallback to "Black" if no colors provided
+      : defaultColor || "Black", // Fallback to "Black" if no colors provided
   );
   const [selectedSize, setSelectedSize] = useState(defaultSize);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -68,11 +68,8 @@ export function AddToCart({
 
   // Sync selected size with defaultSize prop changes
   useEffect(() => {
-    console.log(
-      `AddToCart: Updating selectedSize from ${selectedSize} to ${defaultSize} for product ${productId}`
-    );
     setSelectedSize(defaultSize);
-  }, [defaultSize, selectedSize, productId]);
+  }, [defaultSize, productId]);
 
   const handleAddToCart = async () => {
     // Use real-time stock if available, fallback to passed stock prop
@@ -87,10 +84,6 @@ export function AddToCart({
       });
       return;
     }
-
-    console.log(
-      `AddToCart: Adding to cart - Product: ${name}, Size: ${selectedSize}, Color: ${selectedColor}, Available Stock: ${availableStock}`
-    );
 
     setIsAdding(true);
     try {
@@ -159,12 +152,12 @@ export function AddToCart({
           {stockLoading
             ? "Checking..."
             : isOutOfStock
-            ? "Out of Stock"
-            : isAdding
-            ? "Adding..."
-            : showSuccess
-            ? "Added!"
-            : "Add to Cart"}
+              ? "Out of Stock"
+              : isAdding
+                ? "Adding..."
+                : showSuccess
+                  ? "Added!"
+                  : "Add to Cart"}
         </Button>
 
         {/* Stock warning */}
@@ -197,10 +190,10 @@ export function AddToCart({
               <button
                 key={color}
                 onClick={() => setSelectedColor(color)}
-                className={`px-2 py-1 text-xs border rounded ${
+                className={`px-2 py-1 text-xs border rounded transition-colors ${
                   selectedColor === color
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-foreground border-border hover:bg-muted"
                 }`}
               >
                 {color}
@@ -226,12 +219,12 @@ export function AddToCart({
                     }
                   }}
                   disabled={isOutOfStock}
-                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors font-mono ${
                     isOutOfStock
-                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                      ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
                       : selectedSize === sizeOption
-                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        ? "bg-primary text-primary-foreground border-primary font-bold"
+                        : "bg-card text-foreground border-border hover:bg-muted hover:border-primary hover:text-primary"
                   }`}
                 >
                   {sizeOption}
@@ -250,9 +243,9 @@ export function AddToCart({
         className={className}
       >
         {stockLoading ? (
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted border-t-primary"></div>
         ) : isAdding ? (
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted border-t-primary"></div>
         ) : showSuccess ? (
           <Check className="w-4 h-4 mr-2" />
         ) : isOutOfStock ? (
@@ -263,12 +256,12 @@ export function AddToCart({
         {stockLoading
           ? "Checking..."
           : isOutOfStock
-          ? "Out of Stock"
-          : isAdding
-          ? "Adding..."
-          : showSuccess
-          ? "Added!"
-          : "Add to Cart"}
+            ? "Out of Stock"
+            : isAdding
+              ? "Adding..."
+              : showSuccess
+                ? "Added!"
+                : "Add to Cart"}
       </Button>
 
       {/* Stock information */}

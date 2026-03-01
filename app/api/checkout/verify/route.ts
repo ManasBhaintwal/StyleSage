@@ -23,7 +23,10 @@ export async function POST(request: Request) {
       .update(body.toString())
       .digest("hex");
 
-    const isAuthentic = expectedSignature === razorpay_signature;
+    const isAuthentic = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, "hex"),
+      Buffer.from(razorpay_signature, "hex"),
+    );
 
     if (isAuthentic) {
       // Get the order to access items for stock reduction
@@ -31,8 +34,18 @@ export async function POST(request: Request) {
       if (!order) {
         return NextResponse.json(
           { success: false, error: "Order not found" },
-          { status: 404 }
+          { status: 404 },
         );
+      }
+
+      // Check if order was already verified (idempotency)
+      if (order.payment.status === "completed") {
+        return NextResponse.json({
+          success: true,
+          message: "Payment already verified",
+          stockReduced: true,
+          stockErrors: [],
+        });
       }
 
       // Reduce stock quantities for all items in the order
@@ -51,7 +64,7 @@ export async function POST(request: Request) {
           "payment.razorpaySignature": razorpay_signature,
           "payment.status": "completed",
           orderStatus: "confirmed",
-        }
+        },
       );
 
       return NextResponse.json({
@@ -66,19 +79,19 @@ export async function POST(request: Request) {
         { orderId },
         {
           "payment.status": "failed",
-        }
+        },
       );
 
       return NextResponse.json(
         { success: false, error: "Payment verification failed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
   } catch (error) {
     console.error("Payment verification error:", error);
     return NextResponse.json(
       { success: false, error: "Payment verification failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

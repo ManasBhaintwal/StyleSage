@@ -11,7 +11,7 @@ export interface IProduct extends Document {
   category: string[];
   tags: string[];
   sizes: string[];
-  colors: string[];
+  colors: { id: string; label: string; hex: string }[];
   stock: { [size: string]: number };
   isActive: boolean;
   isFeatured: boolean;
@@ -75,8 +75,10 @@ const ProductSchema = new Schema<IProduct>(
     ],
     colors: [
       {
-        type: String,
-        required: false,
+        id: { type: String, required: true },
+        label: { type: String, required: true },
+        hex: { type: String, required: true },
+        _id: false
       },
     ],
     stock: {

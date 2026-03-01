@@ -63,7 +63,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
       const subtotal = items.reduce(
         (sum, item) => sum + item.price * item.quantity,
-        0
+        0,
       );
       return { ...state, items, totalItems, subtotal };
     }
@@ -74,7 +74,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         (item) =>
           item.productId === newItem.productId &&
           item.color === newItem.color &&
-          item.size === newItem.size
+          item.size === newItem.size,
       );
 
       let updatedItems: CartItem[];
@@ -83,7 +83,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         updatedItems = state.items.map((item, index) =>
           index === existingItemIndex
             ? { ...item, quantity: item.quantity + newItem.quantity }
-            : item
+            : item,
         );
       } else {
         // Add new item
@@ -92,11 +92,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
       const totalItems = updatedItems.reduce(
         (sum, item) => sum + item.quantity,
-        0
+        0,
       );
       const subtotal = updatedItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
-        0
+        0,
       );
       return { ...state, items: updatedItems, totalItems, subtotal };
     }
@@ -107,31 +107,31 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         quantity === 0
           ? state.items.filter((item) => item.id !== id)
           : state.items.map((item) =>
-              item.id === id ? { ...item, quantity } : item
+              item.id === id ? { ...item, quantity } : item,
             );
 
       const totalItems = updatedItems.reduce(
         (sum, item) => sum + item.quantity,
-        0
+        0,
       );
       const subtotal = updatedItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
-        0
+        0,
       );
       return { ...state, items: updatedItems, totalItems, subtotal };
     }
 
     case "REMOVE_ITEM": {
       const updatedItems = state.items.filter(
-        (item) => item.id !== action.payload
+        (item) => item.id !== action.payload,
       );
       const totalItems = updatedItems.reduce(
         (sum, item) => sum + item.quantity,
-        0
+        0,
       );
       const subtotal = updatedItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
-        0
+        0,
       );
       return { ...state, items: updatedItems, totalItems, subtotal };
     }
@@ -281,7 +281,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Sync cart with server whenever items change
   useEffect(() => {
-    if (mounted && state.items.length > 0) {
+    if (mounted) {
       const timeoutId = setTimeout(() => {
         syncCart(state.items);
       }, 500); // Debounce sync operations

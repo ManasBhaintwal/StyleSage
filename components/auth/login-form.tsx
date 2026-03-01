@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Mail, Lock, Chrome, AlertCircle } from "lucide-react";
-import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { getGoogleOAuthURL } from "@/lib/google-oauth";
+import { useAuth } from "@/lib/auth-context";
 
 interface LoginFormProps {
   onToggleForm: () => void;
@@ -29,6 +29,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const auth = useAuth();
   // Determine callbackUrl: use ?callbackUrl=... if present, else current path
   const callbackUrl = searchParams.get("callbackUrl") || pathname;
 
@@ -38,25 +39,14 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed");
-      }
-
-      // Store user data in localStorage for client-side access
-      localStorage.setItem("user", JSON.stringify(data.user));
+      await auth.login(formData.email, formData.password);
+      await auth.checkAuth();
 
       // Redirect based on role or callbackUrl
-      if (data.user.role === "admin") {
+      // Read from localStorage since React state update hasn't re-rendered yet
+      const stored = localStorage.getItem("user");
+      const user = stored ? JSON.parse(stored) : null;
+      if (user?.role === "admin") {
         router.push("/admin");
       } else if (callbackUrl && callbackUrl !== "/auth") {
         router.push(callbackUrl);
@@ -64,7 +54,6 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
         router.push("/");
       }
     } catch (error) {
-      console.error("Login error:", error);
       setError(error instanceof Error ? error.message : "Login failed");
     } finally {
       setIsLoading(false);
@@ -82,12 +71,12 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto border-border bg-card">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardTitle className="text-2xl font-bold text-foreground font-display">
           Welcome Back
         </CardTitle>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground font-sans">
           Sign in to your StyleSage account
         </p>
       </CardHeader>
@@ -101,9 +90,11 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-foreground">
+              Email
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -112,7 +103,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="pl-10"
+                className="pl-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 disabled={isLoading}
               />
@@ -120,9 +111,11 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-foreground">
+              Password
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -131,7 +124,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 disabled={isLoading}
                 minLength={6}
@@ -139,7 +132,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
               >
                 {showPassword ? (
@@ -153,30 +146,30 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
 
           <div className="flex items-center justify-between">
             <label className="flex items-center space-x-2 text-sm">
-              <input type="checkbox" className="rounded" disabled={isLoading} />
-              <span className="text-gray-600 dark:text-gray-400">
-                Remember me
-              </span>
+              <input
+                type="checkbox"
+                className="rounded border-border text-primary focus:ring-primary"
+                disabled={isLoading}
+              />
+              <span className="text-muted-foreground">Remember me</span>
             </label>
-            <Link
-              href="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Forgot password?
-            </Link>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase tracking-wide"
+            disabled={isLoading}
+          >
             {isLoading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
+            <Separator className="w-full bg-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+            <span className="bg-card px-2 text-muted-foreground font-mono">
               Or continue with
             </span>
           </div>
@@ -185,7 +178,7 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-transparent"
+          className="w-full bg-transparent border-border hover:bg-muted"
           onClick={handleGoogleLogin}
           disabled={isLoading}
         >
@@ -194,12 +187,10 @@ function LoginFormContent({ onToggleForm }: LoginFormProps) {
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-          </span>
+          <span className="text-muted-foreground">Don't have an account? </span>
           <button
             onClick={onToggleForm}
-            className="text-blue-600 hover:text-blue-500 font-medium"
+            className="text-primary hover:text-primary/80 font-bold"
             disabled={isLoading}
           >
             Sign up

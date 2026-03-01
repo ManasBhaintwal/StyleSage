@@ -5,22 +5,32 @@ import {
   hashPassword,
   createJWT,
 } from "@/lib/auth";
+import { checkRateLimit, getRateLimitKey } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitKey = getRateLimitKey(request) + ":register";
+    const { allowed } = checkRateLimit(rateLimitKey, 3, 60000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429 },
+      );
+    }
+
     const { email, password, name } = await request.json();
 
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Email, password, and name are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
         { error: "Password must be at least 6 characters long" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -42,7 +52,7 @@ export async function POST(request: NextRequest) {
       name,
       password: hashedPassword,
       provider: "email",
-      role: email.toLowerCase() === "admin@test.com" ? "admin" : "user", // Allow admin creation for testing
+      role: "user",
     });
 
     const token = await createJWT(user);
@@ -64,14 +74,14 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: "/",
     });
 
     return response;
   } catch (error) {
-    console.error("Registration error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -6,7 +6,6 @@ import Product from "./models/Product";
 export async function initializeDatabase() {
   try {
     await connectDB();
-    console.log("🔄 Initializing database...");
 
     // Initialize default admin
     await initializeDefaultAdmin();
@@ -17,12 +16,10 @@ export async function initializeDatabase() {
     // Migrate existing products to new stock structure
     await migrateProductStock();
 
-    // Initialize sample products - DISABLED to prevent automatic t-shirt generation
-    // await initializeSampleProducts();
-
-    console.log("✅ Database initialized successfully");
+    // Initialize sample products
+    await initializeSampleProducts();
   } catch (error) {
-    console.error("❌ Database initialization failed:", error);
+    // Database initialization failed
   }
 }
 
@@ -62,7 +59,6 @@ async function initializeDefaultCategories() {
     const exists = await Category.findOne({ slug: categoryData.slug });
     if (!exists) {
       await Category.create(categoryData);
-      console.log(`✅ Created category: ${categoryData.name}`);
     }
   }
 }
@@ -75,8 +71,6 @@ async function migrateProductStock() {
     for (const product of products) {
       // Check if stock is a number (old structure)
       if (typeof product.stock === "number") {
-        console.log(`🔄 Migrating stock for product: ${product.name}`);
-
         // Create new stock structure based on sizes
         const newStock: { [size: string]: number } = {};
         const stockPerSize = Math.floor(product.stock / product.sizes.length);
@@ -89,18 +83,12 @@ async function migrateProductStock() {
         // Update the product with new stock structure
         await Product.updateOne(
           { _id: product._id },
-          { $set: { stock: newStock } }
-        );
-
-        console.log(
-          `✅ Migrated stock for ${product.name}: ${JSON.stringify(newStock)}`
+          { $set: { stock: newStock } },
         );
       }
     }
-
-    console.log("✅ Stock migration completed");
   } catch (error) {
-    console.error("❌ Stock migration failed:", error);
+    // Stock migration failed
   }
 }
 
@@ -227,7 +215,6 @@ async function initializeSampleProducts() {
     const exists = await Product.findOne({ slug: productData.slug });
     if (!exists) {
       await Product.create(productData);
-      console.log(`✅ Created product: ${productData.name}`);
     }
   }
 }

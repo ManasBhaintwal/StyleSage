@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getGoogleOAuthURL } from "@/lib/google-oauth";
+import { useAuth } from "@/lib/auth-context";
 
 interface SignupFormProps {
   onToggleForm: () => void;
@@ -37,6 +38,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
     confirmPassword: "",
   });
   const router = useRouter();
+  const auth = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,13 +73,12 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
         throw new Error(data.error || "Registration failed");
       }
 
-      // Store user data in localStorage for client-side access
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Sync auth context from the cookie set by the registration endpoint
+      await auth.checkAuth();
 
       // Redirect to home page
       router.push("/");
     } catch (error) {
-      console.error("Registration error:", error);
       setError(error instanceof Error ? error.message : "Registration failed");
     } finally {
       setIsLoading(false);
@@ -94,12 +95,12 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto border-border bg-card">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+        <CardTitle className="text-2xl font-bold text-foreground font-display">
           Create Account
         </CardTitle>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground font-sans">
           Join StyleSage and express your creativity
         </p>
       </CardHeader>
@@ -113,9 +114,11 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name" className="text-foreground">
+              Full Name
+            </Label>
             <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="name"
                 type="text"
@@ -124,7 +127,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="pl-10"
+                className="pl-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 disabled={isLoading}
               />
@@ -132,9 +135,11 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-foreground">
+              Email
+            </Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -143,7 +148,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="pl-10"
+                className="pl-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 disabled={isLoading}
               />
@@ -151,9 +156,11 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-foreground">
+              Password
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -162,7 +169,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 minLength={6}
                 disabled={isLoading}
@@ -170,7 +177,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
               >
                 {showPassword ? (
@@ -183,9 +190,11 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-foreground">
+              Confirm Password
+            </Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
@@ -194,14 +203,14 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
                 }
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 border-border bg-background text-foreground focus:ring-primary focus:border-primary"
                 required
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground disabled:opacity-50"
                 disabled={isLoading}
               >
                 {showConfirmPassword ? (
@@ -217,36 +226,37 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
             <input
               type="checkbox"
               id="terms"
-              className="rounded"
+              className="rounded border-border text-primary focus:ring-primary"
               required
               disabled={isLoading}
             />
-            <label
-              htmlFor="terms"
-              className="text-sm text-gray-600 dark:text-gray-400"
-            >
+            <label htmlFor="terms" className="text-sm text-muted-foreground">
               I agree to the{" "}
-              <a href="/terms" className="text-blue-600 hover:text-blue-500">
+              <a href="/faq" className="text-primary hover:text-primary/80">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy" className="text-blue-600 hover:text-blue-500">
+              <a href="/faq" className="text-primary hover:text-primary/80">
                 Privacy Policy
               </a>
             </label>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold uppercase tracking-wide"
+            disabled={isLoading}
+          >
             {isLoading ? "Creating account..." : "Create Account"}
           </Button>
         </form>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
+            <Separator className="w-full bg-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+            <span className="bg-card px-2 text-muted-foreground font-mono">
               Or continue with
             </span>
           </div>
@@ -255,7 +265,7 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
         <Button
           type="button"
           variant="outline"
-          className="w-full bg-transparent"
+          className="w-full bg-transparent border-border hover:bg-muted"
           onClick={handleGoogleSignup}
           disabled={isLoading}
         >
@@ -264,12 +274,12 @@ export function SignupForm({ onToggleForm }: SignupFormProps) {
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-600 dark:text-gray-400">
+          <span className="text-muted-foreground">
             Already have an account?{" "}
           </span>
           <button
             onClick={onToggleForm}
-            className="text-blue-600 hover:text-blue-500 font-medium"
+            className="text-primary hover:text-primary/80 font-bold"
             disabled={isLoading}
           >
             Sign in

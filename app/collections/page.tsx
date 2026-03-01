@@ -8,18 +8,15 @@ import {
   Filter,
   Grid,
   List,
-  ShoppingCart,
   Heart,
   Loader2,
-  Package,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect } from "react";
 import { AddToCart } from "@/components/add-to-cart";
-import { CartBadge } from "@/components/cart-badge";
 import { normalizeStock, getTotalStock } from "@/lib/stock-normalization";
+import { DynamicNavbar } from "@/components/dynamic-navbar";
+import { Footer } from "@/components/home/Footer";
 
 interface Product {
   _id: string;
@@ -126,10 +123,10 @@ export default function CollectionsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 dark:text-gray-400">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">
             Loading collections...
           </p>
         </div>
@@ -139,9 +136,9 @@ export default function CollectionsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Error: {error}</p>
+          <p className="text-destructive mb-4">Error: {error}</p>
           <Button onClick={fetchCollectionsProducts}>Try Again</Button>
         </div>
       </div>
@@ -149,82 +146,32 @@ export default function CollectionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-2xl font-bold text-gray-900 dark:text-white"
-            >
-              StyleSage
-            </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link
-                href="/"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Home
-              </Link>
-              <Link
-                href="/collections"
-                className="text-blue-600 dark:text-blue-400 font-medium"
-              >
-                Collections
-              </Link>
-              <Link
-                href="/anime"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Anime
-              </Link>
-              <Link
-                href="/meme"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Memes
-              </Link>
-              <Link
-                href="/custom"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-              >
-                Custom
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center space-x-4">
-            <CartBadge />
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary selection:text-black">
+      <DynamicNavbar currentPath="/collections" />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-green-500 to-teal-500 dark:from-green-700 dark:to-teal-700 text-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl font-bold mb-6">Curated Collections</h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Explore our exclusive collections of t-shirts, hand-picked for every
-            style and occasion.
+      <section className="relative h-[40vh] overflow-hidden bg-black flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-50" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+
+        <div className="relative z-10 text-center px-4 max-w-4xl">
+          <span className="block font-mono text-primary text-sm uppercase tracking-[0.2em] mb-4 animate-pulse">Browse All</span>
+          <h1 className="text-6xl md:text-8xl font-display font-black uppercase text-white tracking-tighter mb-4 leading-none">
+            Collections
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-lg mx-auto">
+            Explore our inclusive collections of t-shirts, hand-picked for every style and occasion.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Premium Quality
-            </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Unique Designs
-            </Badge>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              Fast Shipping
-            </Badge>
-          </div>
         </div>
+
+        {/* Decorative Floating Elements */}
+        <div className="absolute top-10 left-10 w-32 h-32 border border-white/5 rounded-full blur-xl animate-float" />
+        <div className="absolute bottom-10 right-10 w-48 h-48 border border-primary/10 rounded-full blur-2xl animate-float-delayed" />
       </section>
 
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
@@ -235,7 +182,7 @@ export default function CollectionsPage() {
                   }
                   size="sm"
                   onClick={() => setSelectedCategory(category.id)}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap font-mono text-xs uppercase"
                 >
                   {category.name} ({category.count})
                 </Button>
@@ -269,7 +216,7 @@ export default function CollectionsPage() {
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               No products found for the selected category.
             </p>
           </div>
@@ -286,65 +233,61 @@ export default function CollectionsPage() {
               return (
                 <Card
                   key={product._id}
-                  className={`group hover:shadow-lg transition-all duration-300 h-full flex flex-col hover:scale-105 ${
-                    viewMode === "list" ? "flex-row min-h-48" : "min-h-96"
-                  }`}
+                  className={`group hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 h-full flex flex-col hover:scale-105 border-border bg-card ${viewMode === "list" ? "flex-row min-h-48" : "min-h-96"
+                    }`}
                 >
                   <CardContent
-                    className={`p-0 h-full ${
-                      viewMode === "list" ? "flex" : "flex flex-col"
-                    }`}
+                    className={`p-0 h-full ${viewMode === "list" ? "flex" : "flex flex-col"
+                      }`}
                   >
                     <div
-                      className={`relative ${
-                        viewMode === "list"
+                      className={`relative ${viewMode === "list"
                           ? "w-48 flex-shrink-0"
                           : "aspect-square w-full"
-                      }`}
+                        }`}
                     >
                       <Image
                         src={product.images[0] || "/placeholder.svg"}
                         alt={product.name}
                         fill
-                        className={`object-cover transition-transform duration-300 ${
-                          viewMode === "list" ? "rounded-l-lg" : "rounded-t-lg"
-                        }`}
+                        className={`object-cover transition-transform duration-300 ${viewMode === "list" ? "rounded-l-lg" : "rounded-t-lg"
+                          }`}
                       />
                       {badge && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground font-bold font-mono text-xs uppercase hover:bg-primary/90">
                           {badge}
                         </Badge>
                       )}
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        variant="ghost"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/50 backdrop-blur-sm hover:bg-background text-primary"
                       >
                         <Heart className="w-4 h-4" />
                       </Button>
                       {product.originalPrice && (
-                        <Badge className="absolute bottom-2 left-2 bg-green-500">
+                        <Badge className="absolute bottom-2 left-2 bg-secondary text-white font-mono text-xs">
                           Save ₹
                           {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
                       )}
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      <h3 className="font-bold font-display text-lg mb-2 group-hover:text-primary transition-colors line-clamp-1 text-foreground uppercase tracking-wide">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2 flex-grow">
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-grow font-sans">
                         {product.description}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium ml-1">
+                          <Star className="w-4 h-4 fill-primary text-primary" />
+                          <span className="text-sm font-medium ml-1 text-foreground font-mono">
                             {product.rating}
                           </span>
                         </div>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {product.reviews} reviews
                         </span>
                       </div>
@@ -352,11 +295,11 @@ export default function CollectionsPage() {
                       {/* Price Section */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900 dark:text-white">
+                          <span className="text-xl font-bold text-foreground font-mono">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
-                            <span className="text-sm text-gray-400 line-through">
+                            <span className="text-sm text-muted-foreground line-through font-mono">
                               ₹{product.originalPrice}
                             </span>
                           )}
@@ -366,7 +309,7 @@ export default function CollectionsPage() {
                       {/* Size Options */}
                       <div className="mb-3">
                         <div className="flex items-start gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">
+                          <span className="text-sm font-medium text-muted-foreground flex-shrink-0">
                             Size:
                           </span>
                           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
@@ -386,13 +329,12 @@ export default function CollectionsPage() {
                                     }
                                   }}
                                   disabled={isOutOfStock}
-                                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
-                                    isOutOfStock
-                                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${isOutOfStock
+                                      ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
                                       : selectedSizes[product._id] === size
-                                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                  }`}
+                                        ? "bg-primary text-primary-foreground border-transparent"
+                                        : "bg-card text-foreground border-border hover:bg-muted"
+                                    }`}
                                 >
                                   {size}
                                 </button>
@@ -442,7 +384,7 @@ export default function CollectionsPage() {
                                 </p>
                               )}
                               {totalStock === 0 && (
-                                <p className="text-red-600 text-xs mt-1 text-center">
+                                <p className="text-destructive text-xs mt-1 text-center">
                                   Out of stock
                                 </p>
                               )}
@@ -458,6 +400,7 @@ export default function CollectionsPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

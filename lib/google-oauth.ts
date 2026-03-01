@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import crypto from "crypto";
 
 // Google OAuth configuration
 export const GOOGLE_OAUTH_CONFIG = {
@@ -39,10 +40,7 @@ export function getGoogleOAuthURL(callbackUrl?: string): string {
 
 // Generate random state for CSRF protection
 function generateState(): string {
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15)
-  );
+  return crypto.randomBytes(32).toString("hex");
 }
 
 // Check if Google OAuth is configured
@@ -62,13 +60,7 @@ export async function exchangeCodeForTokens(code: string): Promise<{
 }> {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI;
-
-  console.log("Google OAuth Debug Info:");
-  console.log("- Client ID configured:", !!clientId);
-  console.log("- Client Secret configured:", !!clientSecret);
-  console.log("- Redirect URI:", redirectUri);
-  console.log("- Authorization code received:", !!code);
+  const redirectUri = GOOGLE_OAUTH_CONFIG.redirectUri;
 
   if (!clientSecret) {
     console.error("GOOGLE_CLIENT_SECRET environment variable is not set");
@@ -77,14 +69,14 @@ export async function exchangeCodeForTokens(code: string): Promise<{
 
   if (!clientId) {
     console.error(
-      "NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not set"
+      "NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not set",
     );
     throw new Error("Google Client ID not configured");
   }
 
   if (!redirectUri) {
     console.error(
-      "NEXT_PUBLIC_GOOGLE_REDIRECT_URI environment variable is not set"
+      "Redirect URI is not configured. Check NEXT_PUBLIC_GOOGLE_REDIRECT_URI or NEXT_PUBLIC_APP_URL",
     );
     throw new Error("Google Redirect URI not configured");
   }
@@ -123,7 +115,7 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   locale: string;
 }> {
   const response = await fetch(
-    `${GOOGLE_OAUTH_URLS.userInfo}?access_token=${accessToken}`
+    `${GOOGLE_OAUTH_URLS.userInfo}?access_token=${accessToken}`,
   );
 
   if (!response.ok) {
