@@ -14,7 +14,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { type Product } from "@/lib/catalog";
 import { getTotalStock } from "@/lib/stock-normalization";
 
 interface ApiProduct {
@@ -43,7 +42,7 @@ export function DynamicFeaturedProducts() {
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>(
-    {}
+    {},
   );
 
   const loadProducts = async () => {
@@ -56,7 +55,7 @@ export function DynamicFeaturedProducts() {
           headers: {
             "Cache-Control": "no-cache",
           },
-        }
+        },
       );
       if (response.ok) {
         const data = await response.json();
@@ -66,7 +65,7 @@ export function DynamicFeaturedProducts() {
         data.products.forEach((product: ApiProduct) => {
           // Find first size that's in stock
           const availableSize = product.sizes.find(
-            (size) => (product.stock[size] || 0) > 0
+            (size) => (product.stock[size] || 0) > 0,
           );
           defaultSizes[product._id] = availableSize || product.sizes[0] || "M";
         });
@@ -111,13 +110,13 @@ export function DynamicFeaturedProducts() {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="animate-pulse h-72">
+          <Card key={i} className="animate-pulse h-72 border-border bg-card">
             <CardContent className="p-0 h-full flex flex-col">
-              <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-t-lg mb-2 flex-shrink-0" />
+              <div className="aspect-square bg-muted rounded-t-lg mb-2 flex-shrink-0" />
               <div className="p-2 space-y-1 flex-1">
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-full mt-auto" />
+                <div className="h-3 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-6 bg-muted rounded w-full mt-auto" />
               </div>
             </CardContent>
           </Card>
@@ -129,11 +128,16 @@ export function DynamicFeaturedProducts() {
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+        <p className="text-muted-foreground mb-4 font-sans">
           No featured products available
         </p>
         <Link href="/admin/catalog">
-          <Button variant="outline">Add Products</Button>
+          <Button
+            variant="outline"
+            className="border-border text-foreground hover:bg-muted"
+          >
+            Add Products
+          </Button>
         </Link>
       </div>
     );
@@ -156,7 +160,7 @@ export function DynamicFeaturedProducts() {
               className="sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
             >
               <div className="p-1">
-                <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col min-h-96 hover:scale-105">
+                <Card className="group hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 h-full flex flex-col min-h-96 hover:scale-105 border-border bg-card">
                   <CardContent className="p-0 h-full flex flex-col">
                     <div className="relative aspect-square w-full">
                       <Image
@@ -170,40 +174,40 @@ export function DynamicFeaturedProducts() {
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                       />
                       {badge && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+                        <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground font-bold font-mono text-xs uppercase hover:bg-primary/90">
                           {badge}
                         </Badge>
                       )}
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        variant="ghost"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-background/50 backdrop-blur-sm hover:bg-background text-primary"
                       >
                         <Heart className="w-4 h-4" />
                       </Button>
                       {product.originalPrice && (
-                        <Badge className="absolute bottom-2 left-2 bg-green-500">
+                        <Badge className="absolute bottom-2 left-2 bg-secondary text-white font-mono text-xs">
                           Save ₹
                           {(product.originalPrice - product.price).toFixed(2)}
                         </Badge>
                       )}
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      <h3 className="font-bold font-display text-lg mb-2 group-hover:text-primary transition-colors line-clamp-1 text-foreground uppercase tracking-wide">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2 flex-grow">
+                      <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-grow font-sans">
                         {product.description}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium ml-1">
+                          <Star className="w-4 h-4 fill-primary text-primary" />
+                          <span className="text-sm font-medium ml-1 text-foreground font-mono">
                             {product.rating}
                           </span>
                         </div>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {product.reviews} reviews
                         </span>
                       </div>
@@ -211,11 +215,11 @@ export function DynamicFeaturedProducts() {
                       {/* Price Section */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xl font-bold text-gray-900 dark:text-white">
+                          <span className="text-xl font-bold text-foreground font-mono">
                             ₹{product.price}
                           </span>
                           {product.originalPrice && (
-                            <span className="text-sm text-gray-400 line-through">
+                            <span className="text-sm text-muted-foreground line-through font-mono">
                               ₹{product.originalPrice}
                             </span>
                           )}
@@ -225,7 +229,7 @@ export function DynamicFeaturedProducts() {
                       {/* Size Options */}
                       <div className="mb-3">
                         <div className="flex items-start gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">
+                          <span className="text-sm font-medium text-foreground flex-shrink-0 font-sans mt-1">
                             Size:
                           </span>
                           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
@@ -244,12 +248,12 @@ export function DynamicFeaturedProducts() {
                                     }
                                   }}
                                   disabled={isOutOfStock}
-                                  className={`px-3 py-2 text-sm rounded-md border flex-shrink-0 transition-colors ${
+                                  className={`px-3 py-2 text-xs font-bold font-mono rounded-sm border flex-shrink-0 transition-colors ${
                                     isOutOfStock
-                                      ? "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-60"
+                                      ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-50"
                                       : selectedSizes[product._id] === size
-                                      ? "bg-gray-900 text-white border-transparent dark:bg-gray-700 dark:text-white"
-                                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        ? "bg-primary text-primary-foreground border-primary"
+                                        : "bg-card text-foreground border-border hover:border-primary hover:text-primary"
                                   }`}
                                 >
                                   {size}
@@ -290,7 +294,7 @@ export function DynamicFeaturedProducts() {
                         {(() => {
                           const totalStock = getTotalStock(
                             product.stock,
-                            product.sizes
+                            product.sizes,
                           );
                           return (
                             <>

@@ -1,268 +1,174 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Minus,
-  Plus,
-  X,
-  ShoppingBag,
-  ArrowLeft,
-  Truck,
-  Shield,
-} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Trash2, Minus, Plus, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { DynamicNavbar } from "@/components/dynamic-navbar";
 import { useCart } from "@/lib/cart-context";
-import { CartBadge } from "@/components/cart-badge";
 
 export default function CartPage() {
-  const {
-    items,
-    updateQuantity,
-    removeFromCart,
-    clearCart,
-    subtotal,
-    totalItems,
-    isLoading,
-  } = useCart();
+  const { items, subtotal, updateQuantity, removeFromCart } = useCart();
+  const [coupon, setCoupon] = useState("");
 
-  const shipping = subtotal > 1199 ? 0 : 99; // Free shipping over ₹1199, else ₹99
+  const updateQty = (id: string, delta: number) => {
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+    if (delta > 0) {
+      updateQuantity(id, item.quantity + 1);
+    } else {
+      if (item.quantity > 1) {
+        updateQuantity(id, item.quantity - 1);
+      } else {
+        removeFromCart(id);
+      }
+    }
+  };
+
+  const removeItem = (id: string) => {
+    removeFromCart(id);
+  };
+
+  const shipping = subtotal > 1500 ? 0 : 150;
   const total = subtotal + shipping;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading cart...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link
-                href="/"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
-              >
-                StyleSage
-              </Link>
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-              >
-                Shopping Cart
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              <Link href="/">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Continue Shopping
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background text-foreground">
+      <DynamicNavbar />
+      <div className="py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <h1 className="text-4xl md:text-5xl font-display font-black uppercase mb-12">
+            Your Cart <span className="text-primary">({items.length})</span>
+          </h1>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {items.length === 0 ? (
-          // Empty Cart
-          <div className="text-center py-16">
-            <ShoppingBag className="w-24 h-24 text-gray-300 dark:text-gray-600 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Your cart is empty
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Looks like you haven't added any items to your cart yet.
-            </p>
-            <Link href="/">
-              <Button
-                size="lg"
-                className="bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-              >
-                Start Shopping
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Shopping Cart ({items.length}{" "}
-                  {items.length === 1 ? "item" : "items"})
-                </h1>
-                <Button
-                  onClick={clearCart}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  Clear Cart
-                </Button>
-              </div>
+          <div className="grid lg:grid-cols-12 gap-12">
+            {/* Cart Items List */}
+            <div className="lg:col-span-8 space-y-6">
+              <AnimatePresence>
+                {items.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex gap-6 p-4 bg-card border border-border rounded-xl group"
+                  >
+                    <div className="relative w-24 h-32 flex-shrink-0 bg-muted rounded-lg overflow-hidden">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
 
-              {items.map((item) => (
-                <Card
-                  key={item.id}
-                  className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="relative w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
+                    <div className="flex-1 flex flex-col justify-between py-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-display font-bold uppercase text-lg">
+                            {item.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {item.size} / {item.color}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              {item.name}
-                            </h3>
-                            {item.category && (
-                              <Badge variant="outline" className="mt-1 text-xs">
-                                {item.category}
-                              </Badge>
-                            )}
-                            <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                              <span>Color: {item.color}</span>
-                              <span className="mx-2">•</span>
-                              <span>Size: {item.size}</span>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => removeFromCart(item.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-red-500"
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center gap-3 bg-muted rounded-lg p-1">
+                          <button
+                            onClick={() => updateQty(item.id, -1)}
+                            className="p-1 hover:bg-background rounded transition-colors"
                           >
-                            <X className="w-4 h-4" />
-                          </Button>
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="font-mono font-bold w-4 text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQty(item.id, 1)}
+                            className="p-1 hover:bg-background rounded transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
                         </div>
-
-                        <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center space-x-3">
-                            <Button
-                              onClick={() =>
-                                updateQuantity(item.id, item.quantity - 1)
-                              }
-                              variant="outline"
-                              size="sm"
-                              className="w-8 h-8 p-0"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </Button>
-                            <span className="text-gray-900 dark:text-white font-medium w-8 text-center">
-                              {item.quantity}
-                            </span>
-                            <Button
-                              onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
-                              }
-                              variant="outline"
-                              size="sm"
-                              className="w-8 h-8 p-0"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900 dark:text-white">
-                              ₹{(item.price * item.quantity).toFixed(2)}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              ₹{item.price.toFixed(2)} each
-                            </div>
-                          </div>
-                        </div>
+                        <span className="font-mono font-bold text-lg text-primary">
+                          ₹{item.price * item.quantity}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {items.length === 0 && (
+                <div className="text-center py-24 border border-dashed border-border rounded-xl">
+                  <p className="text-muted-foreground mb-4">
+                    Your cart involves zero drip.
+                  </p>
+                  <Button variant="neon" asChild>
+                    <Link href="/category/all">Start Shopping</Link>
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 sticky top-8">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            <div className="lg:col-span-4">
+              <div className="sticky top-24 space-y-6">
+                <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+                  <h3 className="font-display font-bold uppercase text-xl">
                     Order Summary
-                  </h2>
+                  </h3>
 
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Subtotal</span>
-                      <span>₹{subtotal.toFixed(2)}</span>
+                  <div className="space-y-4 text-sm font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span>₹{subtotal}</span>
                     </div>
-
-                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                      <span>Shipping</span>
-                      <span>
-                        {shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Shipping</span>
+                      <span>{shipping === 0 ? "FREE" : `₹${shipping}`}</span>
                     </div>
-
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                      <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
-                        <span>Total</span>
-                        <span>₹{total.toFixed(2)}</span>
-                      </div>
+                    <div className="pt-4 border-t border-border flex justify-between text-lg font-bold">
+                      <span>Total</span>
+                      <span className="text-primary">₹{total}</span>
                     </div>
                   </div>
 
-                  {shipping > 0 && (
-                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
-                        Add ₹{(1199 - subtotal).toFixed(2)} more for free
-                        shipping!
-                      </p>
-                    </div>
-                  )}
-
-                  <Link href="/checkout">
-                    <Button
-                      size="lg"
-                      className="w-full mt-6 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-                    >
-                      Proceed to Checkout
-                    </Button>
-                  </Link>
-
-                  <div className="mt-6 space-y-3">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Truck className="w-4 h-4" />
-                      <span>Free shipping on orders over ₹1199</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                      <Shield className="w-4 h-4" />
-                      <span>Money back if order cancelled before 7 days</span>
-                    </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Promo Code"
+                      value={coupon}
+                      onChange={(e) => setCoupon(e.target.value)}
+                      className="bg-background border-border font-mono uppercase"
+                    />
+                    <Button variant="outline">Apply</Button>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <Button
+                    size="lg"
+                    className="w-full h-14 bg-primary text-black font-bold uppercase tracking-widest hover:bg-primary/90"
+                    asChild
+                  >
+                    <Link href="/checkout">
+                      Checkout <ArrowRight className="ml-2 w-5 h-5" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -1,64 +1,77 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { SignupForm } from "@/components/auth/signup-form";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import Link from "next/link";
+import { DynamicNavbar } from "@/components/dynamic-navbar";
 
-function AuthContent() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [error, setError] = useState("");
+function AuthPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const modeParam = searchParams.get("mode");
 
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  // Sync state with URL param on mount/update
   useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam) {
-      switch (errorParam) {
-        case "no_code":
-          setError("Authorization code not received from Google");
-          break;
-        case "access_denied":
-          setError("Google sign-in was cancelled");
-          break;
-        default:
-          setError(decodeURIComponent(errorParam));
-      }
+    if (modeParam === "register" || modeParam === "signup") {
+      setMode("register");
+    } else {
+      setMode("login");
     }
-  }, [searchParams]);
+  }, [modeParam]);
+
+  const toggleMode = () => {
+    const newMode = mode === "login" ? "register" : "login";
+    setMode(newMode);
+
+    // Update URL without full reload
+    const newUrl = new URL(window.location.href);
+    if (newMode === "register") {
+      newUrl.searchParams.set("mode", "register");
+    } else {
+      newUrl.searchParams.delete("mode");
+    }
+    router.replace(newUrl.pathname + newUrl.search);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="absolute top-4 left-4">
-        <Link
-          href="/"
-          className="text-2xl font-bold text-gray-900 dark:text-white"
-        >
-          StyleSage
-        </Link>
-      </div>
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
+    <div className="flex flex-col min-h-screen">
+      <DynamicNavbar />
+      <div className="flex-1 grid lg:grid-cols-2">
+        {/* Left: Brand Visual */}
+        <div className="hidden lg:flex relative bg-surface items-center justify-center p-12 overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
 
-      <div className="w-full max-w-md space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          <div className="relative z-10 text-center space-y-6">
+            <h1 className="font-heading text-6xl font-bold">
+              JOIN THE <br /> <span className="text-primary">CULTURE</span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-md mx-auto">
+              Get early access to drops, exclusive discounts, and member-only custom designs.
+            </p>
+          </div>
+        </div>
 
-        {isLogin ? (
-          <LoginForm onToggleForm={() => setIsLogin(false)} />
-        ) : (
-          <SignupForm onToggleForm={() => setIsLogin(true)} />
-        )}
+        {/* Right: Form */}
+        <div className="flex items-center justify-center p-6 md:p-12 bg-background">
+          <div className="w-full max-w-md">
+            <div className="text-center lg:text-left mb-8">
+              <Link href="/" className="font-heading text-2xl font-bold tracking-tighter">
+                STYLE<span className="text-primary">SAGE</span>
+              </Link>
+            </div>
+
+            {mode === "login" ? (
+              <LoginForm onToggleForm={toggleMode} />
+            ) : (
+              <SignupForm onToggleForm={toggleMode} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -66,8 +79,8 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AuthContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <AuthPageContent />
     </Suspense>
   );
 }

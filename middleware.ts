@@ -8,7 +8,7 @@ const protectedRoutes = ["/admin", "/profile", "/address", "/checkout"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtected = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
+    pathname.startsWith(route),
   );
 
   if (isProtected) {
@@ -17,24 +17,30 @@ export async function middleware(request: NextRequest) {
       // Redirect to /auth with callbackUrl
       const callbackUrl = encodeURIComponent(pathname);
       return NextResponse.redirect(
-        new URL(`/auth?callbackUrl=${callbackUrl}`, request.url)
+        new URL(`/auth?callbackUrl=${callbackUrl}`, request.url),
       );
     }
 
     // For admin, check role
     if (pathname.startsWith("/admin")) {
       try {
-        const JWT_SECRET = new TextEncoder().encode(
-          process.env.JWT_SECRET || "your-secret-key-change-in-production"
-        );
+        if (!process.env.JWT_SECRET) {
+          return NextResponse.redirect(
+            new URL(
+              `/auth?callbackUrl=${encodeURIComponent(pathname)}`,
+              request.url,
+            ),
+          );
+        }
+        const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
         const { payload } = await jwtVerify(token, JWT_SECRET);
 
         if (payload.role !== "admin") {
           return NextResponse.redirect(
             new URL(
               `/auth?callbackUrl=${encodeURIComponent(pathname)}`,
-              request.url
-            )
+              request.url,
+            ),
           );
         }
       } catch (error) {
@@ -42,8 +48,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(
           new URL(
             `/auth?callbackUrl=${encodeURIComponent(pathname)}`,
-            request.url
-          )
+            request.url,
+          ),
         );
       }
     }

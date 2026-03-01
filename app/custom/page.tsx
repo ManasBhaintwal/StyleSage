@@ -1,401 +1,441 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Upload, X, Download, ShoppingCart, RotateCcw } from "lucide-react";
-import Image from "next/image";
-
-import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import {
+  Download,
+  Share2,
+  Box,
+  Layers,
+  Type,
+  Sticker,
+  RotateCw,
+  Move,
+  Trash2,
+  Plus,
+  ShoppingCart,
+  Shirt,
+  Star,
+  Heart,
+  Zap,
+  Smile,
+  Ghost,
+  Crown,
+  Skull,
+  Flame
+} from "lucide-react";
 import { DynamicNavbar } from "@/components/dynamic-navbar";
-import { AddToCart } from "@/components/add-to-cart";
+import { useCart } from "@/lib/cart-context";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export default function CustomPage() {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [imagePosition, setImagePosition] = useState({ x: 50, y: 45 });
-  const [imageSize, setImageSize] = useState(30);
-  const [selectedColor, setSelectedColor] = useState("white");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+// Types
+type LayerType = "text" | "sticker";
 
-  const tshirtColors = [
-    {
-      name: "White",
-      value: "white",
-      bg: "bg-white",
-      border: "border-gray-300",
-    },
-    {
-      name: "Black",
-      value: "black",
-      bg: "bg-gray-900",
-      border: "border-gray-700",
-    },
-    {
-      name: "Navy",
-      value: "navy",
-      bg: "bg-blue-900",
-      border: "border-blue-800",
-    },
-    { name: "Red", value: "red", bg: "bg-red-600", border: "border-red-500" },
-    {
-      name: "Green",
-      value: "green",
-      bg: "bg-green-600",
-      border: "border-green-500",
-    },
-  ];
+interface Layer {
+  id: string;
+  type: LayerType;
+  content: string; // Text content or sticker icon name
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  color: string;
+  fontFamily?: string;
+}
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+const SHIRT_COLORS = [
+  { name: "Black", value: "#1a1a1a", border: "border-white/20" },
+  { name: "White", value: "#ffffff", border: "border-gray-200" },
+  { name: "Navy", value: "#1e3a8a", border: "border-blue-900" },
+  { name: "Red", value: "#b91c1c", border: "border-red-900" },
+  { name: "Charcoal", value: "#374151", border: "border-gray-600" },
+];
+
+const AVAILABLE_STICKERS = [
+  "Star", "Heart", "Zap", "Smile", "Ghost", "Crown", "Skull", "Flame"
+];
+
+const FONTS = ["font-sans", "font-serif", "font-mono", "font-display"];
+
+export default function CustomLabPage() {
+  // State
+  const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
+  const [baseColor, setBaseColor] = useState(SHIRT_COLORS[0]);
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Cart & Toast
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  // Refs for drag logic
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const startLayerPos = useRef({ x: 0, y: 0 });
+
+  // Add Layer Helper
+  const addLayer = (type: LayerType, content: string) => {
+    const newLayer: Layer = {
+      id: `layer-${Date.now()}`,
+      type,
+      content,
+      x: 50, // Percent
+      y: 40, // Percent
+      scale: 1,
+      rotation: 0,
+      color: type === 'text' ? "#ffffff" : "#ffffff",
+      fontFamily: "font-sans"
+    };
+    setLayers([...layers, newLayer]);
+    setSelectedLayerId(newLayer.id);
+  };
+
+  // Update Selected Layer Helper
+  const updateSelectedLayer = (updates: Partial<Layer>) => {
+    if (!selectedLayerId) return;
+    setLayers(layers.map(l => l.id === selectedLayerId ? { ...l, ...updates } : l));
+  };
+
+  // Delete Layer
+  const deleteSelectedLayer = () => {
+    if (!selectedLayerId) return;
+    setLayers(layers.filter(l => l.id !== selectedLayerId));
+    setSelectedLayerId(null);
+  };
+
+  // Drag Logic (Simple implementation)
+  const handleMouseDown = (e: React.MouseEvent, layerId: string) => {
+    e.stopPropagation();
+    setSelectedLayerId(layerId);
+    setIsDragging(true);
+
+    // Find layer to get current pos
+    const layer = layers.find(l => l.id === layerId);
+    if (layer) {
+      startLayerPos.current = { x: layer.x, y: layer.y };
+      dragStartPos.current = { x: e.clientX, y: e.clientY };
     }
   };
 
-  const removeImage = () => {
-    setUploadedImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !selectedLayerId) return;
+
+    // Calculate delta in percentage (assuming canvas is approx 400px wide for simplicity of this demo logic)
+    // Refine: We should use ref to canvas to get actual dimensions
+    const deltaX = (e.clientX - dragStartPos.current.x) / 4; // approximate px to % conversion
+    const deltaY = (e.clientY - dragStartPos.current.y) / 6;
+
+    updateSelectedLayer({
+      x: startLayerPos.current.x + deltaX,
+      y: startLayerPos.current.y + deltaY
+    });
   };
 
-  const resetDesign = () => {
-    setUploadedImage(null);
-    setImagePosition({ x: 50, y: 45 });
-    setImageSize(30);
-    setSelectedColor("white");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
+
+  // Add to Cart Logic
+  const handleAddToCart = () => {
+    if (layers.length === 0) {
+      toast({
+        title: "Empty Design",
+        description: "Please add some elements to your design before adding to cart.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addToCart({
+      productId: `custom-${Date.now()}`,
+      name: "Custom Design T-Shirt",
+      price: 2999,
+      image: "/gokuTshirt.jpeg", // Placeholder for custom view, ideally generate thumbnail
+      color: baseColor.name,
+      size: "L", // Default size, could add selector
+      quantity: 1,
+      category: "custom"
+    });
+
+    toast({
+      title: "Added to Cart",
+      description: "Your custom masterpiece has been added to the cart.",
+    });
+  };
+
+  const selectedLayer = layers.find(l => l.id === selectedLayerId);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-2xl font-bold text-gray-900 dark:text-white"
-              >
-                StyleSage
-              </Link>
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-              >
-                Custom Designer
-              </Badge>
-            </div>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                Back to Home
-              </Button>
-            </Link>
+    <div
+      className="h-screen bg-[#050505] text-foreground flex flex-col overflow-hidden selection:bg-primary selection:text-black"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    >
+      <DynamicNavbar currentPath="/custom" />
+
+      {/* Workplace */}
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* Left: Tools */}
+        <div className="w-20 border-r border-border flex flex-col items-center py-6 gap-6 bg-card/20 z-10">
+          <div className="flex flex-col gap-2 items-center">
+            <button
+              onClick={() => addLayer('text', 'VISION')}
+              className="p-3 rounded-xl bg-card border border-border hover:bg-primary hover:text-black hover:border-primary transition-all group"
+              title="Add Text"
+            >
+              <Type className="w-6 h-6 group-hover:scale-110 transition-transform" />
+            </button>
+            <span className="text-[10px] font-mono text-muted-foreground">TEXT</span>
           </div>
-          <div className="mt-4">
-            <DynamicNavbar />
+
+          <div className="flex flex-col gap-2 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="p-3 rounded-xl bg-card border border-border hover:bg-primary hover:text-black hover:border-primary transition-all group"
+                  title="Add Sticker"
+                >
+                  <Sticker className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 grid grid-cols-4 gap-2 p-2" side="right">
+                {AVAILABLE_STICKERS.map((sticker) => (
+                  <DropdownMenuItem key={sticker} onClick={() => addLayer('sticker', sticker)} className="flex items-center justify-center p-2 cursor-pointer">
+                    {sticker === "Star" && <Star className="w-6 h-6" />}
+                    {sticker === "Heart" && <Heart className="w-6 h-6" />}
+                    {sticker === "Zap" && <Zap className="w-6 h-6" />}
+                    {sticker === "Smile" && <Smile className="w-6 h-6" />}
+                    {sticker === "Ghost" && <Ghost className="w-6 h-6" />}
+                    {sticker === "Crown" && <Crown className="w-6 h-6" />}
+                    {sticker === "Skull" && <Skull className="w-6 h-6" />}
+                    {sticker === "Flame" && <Flame className="w-6 h-6" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="text-[10px] font-mono text-muted-foreground">STICKER</span>
+          </div>
+
+          <div className="flex flex-col gap-2 items-center mt-auto mb-4">
+            <button
+              onClick={() => setLayers([])}
+              className="p-3 rounded-xl bg-card border border-border hover:bg-destructive hover:text-white hover:border-destructive transition-all"
+              title="Clear All"
+            >
+              <Trash2 className="w-6 h-6" />
+            </button>
+            <span className="text-[10px] font-mono text-muted-foreground">CLEAR</span>
           </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Design Your Custom T-Shirt
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Upload your design and see it come to life on our premium t-shirts.
-            Customize colors, size, and position to create your perfect piece.
-          </p>
-        </div>
+        {/* Center: Canvas */}
+        <div className="flex-1 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-opacity-5 relative flex items-center justify-center overflow-auto p-8">
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Design Controls */}
-          <div className="space-y-6">
-            {/* Upload Section */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Upload Your Design
-                </h3>
+          {/* View Toggle */}
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-card/80 backdrop-blur p-1 rounded-full border border-border flex gap-1 z-20 shadow-xl">
+            <button
+              onClick={() => setViewMode('2D')}
+              className={`px-6 py-2 rounded-full text-xs font-bold uppercase transition-colors ${viewMode === '2D' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              2D Editor
+            </button>
+            <button
+              onClick={() => setViewMode('3D')}
+              className={`px-6 py-2 rounded-full text-xs font-bold uppercase transition-colors ${viewMode === '3D' ? 'bg-primary text-black' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              3D Preview
+            </button>
+          </div>
 
-                {!uploadedImage ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
-                  >
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      Click to upload your design
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      PNG, JPG up to 10MB
-                    </p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-                      <Image
-                        src={uploadedImage || "/placeholder.svg"}
-                        alt="Uploaded design"
-                        width={200}
-                        height={200}
-                        className="w-full h-32 object-contain rounded"
-                      />
-                    </div>
-                    <Button
-                      onClick={removeImage}
-                      size="sm"
-                      variant="destructive"
-                      className="absolute -top-2 -right-2"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
+          {/* The T-Shirt Canvas Area */}
+          <div className="relative w-[500px] h-[600px] flex items-center justify-center transition-all duration-500">
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </CardContent>
-            </Card>
-
-            {/* T-Shirt Color Selection */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Choose T-Shirt Color
-                </h3>
-                <div className="grid grid-cols-5 gap-3">
-                  {tshirtColors.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => setSelectedColor(color.value)}
-                      className={`w-12 h-12 rounded-full border-2 ${color.bg} ${
-                        color.border
-                      } ${
-                        selectedColor === color.value
-                          ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800"
-                          : ""
-                      } transition-all`}
-                      title={color.name}
-                    />
-                  ))}
+            {viewMode === '2D' ? (
+              <div className="relative w-full h-full group">
+                {/* T-Shirt Base SVG representation */}
+                <div
+                  className="absolute inset-0 w-full h-full transition-colors duration-500 shadow-2xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                  style={{
+                    backgroundColor: baseColor.value,
+                    maskImage: "url('/tshirt-mask.png')", // Ideally we need a real mask image, for now using CSS shape/clip-path approximation or just a div
+                    WebkitMaskImage: "url('/tshirt-mask.png')", // Fallback if image existed
+                    // Fallback Shape for Demo if image missing:
+                    clipPath: "polygon(20% 0%, 80% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%)",
+                    borderRadius: "2rem"
+                  }}
+                >
+                  {/* Texture Overlay */}
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+                  {/* Shadow/Fold effects */}
+                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Selected:{" "}
-                  {tshirtColors.find((c) => c.value === selectedColor)?.name}
-                </p>
-              </CardContent>
-            </Card>
 
-            {/* Design Controls */}
-            {uploadedImage && (
-              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Adjust Design
-                  </h3>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Size: {imageSize}%
-                      </label>
-                      <input
-                        type="range"
-                        min="10"
-                        max="60"
-                        value={imageSize}
-                        onChange={(e) => setImageSize(Number(e.target.value))}
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Horizontal Position: {imagePosition.x}%
-                      </label>
-                      <input
-                        type="range"
-                        min="10"
-                        max="90"
-                        value={imagePosition.x}
-                        onChange={(e) =>
-                          setImagePosition((prev) => ({
-                            ...prev,
-                            x: Number(e.target.value),
-                          }))
-                        }
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Vertical Position: {imagePosition.y}%
-                      </label>
-                      <input
-                        type="range"
-                        min="25"
-                        max="75"
-                        value={imagePosition.y}
-                        onChange={(e) =>
-                          setImagePosition((prev) => ({
-                            ...prev,
-                            y: Number(e.target.value),
-                          }))
-                        }
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                onClick={resetDesign}
-                variant="outline"
-                className="flex-1 bg-transparent"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset Design
-              </Button>
-              {uploadedImage && (
-                <>
-                  
-                  <AddToCart
-                    productId="custom-design"
-                    name={`Custom ${selectedColor} T-Shirt`}
-                    price={499}
-                    image="/placeholder.svg?height=400&width=400&text=Custom+Design"
-                    category="Custom"
-                    defaultColor={selectedColor}
-                    colors={tshirtColors.map((c) => c.name)}
-                    className="flex-1 bg-gray-900 hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-                  />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* T-Shirt Preview */}
-          <div className="lg:sticky lg:top-8">
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
-                  Live Preview
-                </h3>
-
-                <div className="relative mx-auto" style={{ maxWidth: "400px" }}>
-                  {/* T-Shirt Base */}
-                  <div className="relative aspect-[4/5] mx-auto">
-                    <div className="tshirt-icon-container relative w-full h-full flex items-center justify-center">
-                      <i
-                        className="fas fa-tshirt tshirt-icon"
-                        style={{
-                          fontSize: "320px",
-                          color:
-                            selectedColor === "white"
-                              ? "#ffffff"
-                              : selectedColor === "black"
-                              ? "#1f2937"
-                              : selectedColor === "navy"
-                              ? "#1e3a8a"
-                              : selectedColor === "red"
-                              ? "#dc2626"
-                              : selectedColor === "green"
-                              ? "#16a34a"
-                              : "#ffffff",
-                          filter: `drop-shadow(0 10px 20px rgba(0,0,0,0.2)) ${
-                            selectedColor === "white"
-                              ? "drop-shadow(0 0 0 1px rgba(0,0,0,0.1))"
-                              : ""
-                          }`,
-                          WebkitTextStroke:
-                            selectedColor === "white" ? "1px #e5e7eb" : "none",
-                        }}
-                      />
-
-                      {/* Design Area Overlay */}
+                {/* Editor Area (Safe Zone) */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-20">
+                  <div className="w-full h-full border border-dashed border-white/20 rounded-lg relative pointer-events-auto overflow-hidden">
+                    {layers.map((layer) => (
                       <div
-                        className="absolute pointer-events-none"
+                        key={layer.id}
+                        onMouseDown={(e) => handleMouseDown(e, layer.id)}
+                        className={`absolute cursor-move select-none flex items-center justify-center ${selectedLayerId === layer.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-black' : ''}`}
                         style={{
-                          top: "32%",
-                          left: "35%",
-                          width: "30%",
-                          height: "25%",
-                          zIndex: 10,
+                          left: `${layer.x}%`,
+                          top: `${layer.y}%`,
+                          transform: `translate(-50%, -50%) scale(${layer.scale}) rotate(${layer.rotation}deg)`,
+                          color: layer.color
                         }}
                       >
-                        {/* Uploaded Image Overlay */}
-                        {uploadedImage && (
-                          <div
-                            className="absolute rounded-lg overflow-hidden"
-                            style={{
-                              left: `${(imagePosition.x - 50) * 2}%`,
-                              top: `${(imagePosition.y - 45) * 2}%`,
-                              width: `${imageSize * 1.2}%`,
-                              height: `${imageSize * 0.9}%`,
-                              transform: "translate(-50%, -50%)",
-                              filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.3))",
-                              zIndex: 15,
-                            }}
-                          >
-                            <Image
-                              src={uploadedImage || "/placeholder.svg"}
-                              alt="Custom design"
-                              fill
-                              className="object-contain"
-                            />
-                          </div>
-                        )}
-
-                        {!uploadedImage && (
-                          <div className="absolute inset-0 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-white/20 backdrop-blur-sm">
-                            <div className="text-center text-gray-500 dark:text-gray-400">
-                              <Upload className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                              <p className="text-xs">Design Area</p>
-                            </div>
+                        {layer.type === 'text' ? (
+                          <span className={`text-4xl font-bold whitespace-nowrap ${layer.fontFamily}`}>{layer.content}</span>
+                        ) : (
+                          <div className="w-20 h-20 text-current">
+                            {layer.content === "Star" && <Star className="w-full h-full fill-current" />}
+                            {layer.content === "Heart" && <Heart className="w-full h-full fill-current" />}
+                            {layer.content === "Zap" && <Zap className="w-full h-full fill-current" />}
+                            {layer.content === "Smile" && <Smile className="w-full h-full" />}
+                            {layer.content === "Ghost" && <Ghost className="w-full h-full fill-current" />}
+                            {layer.content === "Crown" && <Crown className="w-full h-full fill-current" />}
+                            {layer.content === "Skull" && <Skull className="w-full h-full fill-current" />}
+                            {layer.content === "Flame" && <Flame className="w-full h-full fill-current" />}
+                            {!["Star", "Heart", "Zap", "Smile", "Ghost", "Crown", "Skull", "Flame"].includes(layer.content) && <Sticker className="w-full h-full" />}
                           </div>
                         )}
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center animate-pulse">
+                <Layers className="w-32 h-32 text-primary mb-6 opacity-50" />
+                <h2 className="text-2xl font-bold uppercase tracking-widest text-white mb-2">3D Rendering</h2>
+                <p className="font-mono text-muted-foreground">Model generation in progress...</p>
+              </div>
+            )}
+          </div>
+        </div>
 
-                {/* Product Info */}
-                <div className="mt-6 text-center space-y-2">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    Custom Premium T-Shirt
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    100% Cotton •{" "}
-                    {tshirtColors.find((c) => c.value === selectedColor)?.name}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    ₹499.00
-                  </p>
+        {/* Right: Properties Panel */}
+        <div className="w-80 border-l border-border bg-card/20 backdrop-blur-sm p-6 flex flex-col gap-8 h-full overflow-y-auto">
+          {/* Section: Base Product */}
+          <div>
+            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 block">Base Product</Label>
+            <h3 className="font-display font-black text-2xl uppercase mb-1">Oversized Tee</h3>
+            <p className="text-sm text-muted-foreground mb-4">Premium Heavyweight Cotton</p>
+
+            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 block">Color</Label>
+            <div className="flex gap-3 flex-wrap">
+              {SHIRT_COLORS.map((color) => (
+                <button
+                  key={color.name}
+                  onClick={() => setBaseColor(color)}
+                  className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-110 ${color.value === baseColor.value ? 'ring-2 ring-primary ring-offset-2 ring-offset-black scale-110' : 'opacity-70'} ${color.border}`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Section: Layer Properties */}
+          {selectedLayer ? (
+            <div className="animate-in slide-in-from-right duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <Label className="text-xs font-bold text-primary uppercase tracking-wider">Editing {selectedLayer.type}</Label>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={deleteSelectedLayer}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {selectedLayer.type === 'text' && (
+                  <div className="space-y-2">
+                    <Label>Text Content</Label>
+                    <Input
+                      value={selectedLayer.content}
+                      onChange={(e) => updateSelectedLayer({ content: e.target.value })}
+                      className="bg-black/50 border-white/10"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label>Scale</Label>
+                    <span className="text-xs font-mono text-muted-foreground">{selectedLayer.scale.toFixed(1)}x</span>
+                  </div>
+                  <Slider
+                    value={[selectedLayer.scale]}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    onValueChange={([val]) => updateSelectedLayer({ scale: val })}
+                  />
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Rotation</Label>
+                    <span className="text-xs font-mono text-muted-foreground">{Math.round(selectedLayer.rotation)}°</span>
+                  </div>
+                  <Slider
+                    value={[selectedLayer.rotation]}
+                    min={0}
+                    max={360}
+                    step={5}
+                    onValueChange={([val]) => updateSelectedLayer({ rotation: val })}
+                  />
+                </div>
+
+                {selectedLayer.type === 'text' && (
+                  <div className="space-y-2">
+                    <Label>Color</Label>
+                    <div className="flex gap-2 flex-wrap">
+                      {["#ffffff", "#000000", "#ff0000", "#00ff00", "#0000ff", "#ffff00"].map(c => (
+                        <button
+                          key={c}
+                          onClick={() => updateSelectedLayer({ color: c })}
+                          className={`w-6 h-6 rounded border border-white/20 ${selectedLayer.color === c ? 'ring-2 ring-primary' : ''}`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 rounded-xl border border-dashed border-white/10 text-center text-muted-foreground bg-white/5">
+              <p className="text-sm">Select a layer to edit properties</p>
+            </div>
+          )}
+
+          {/* Section: Actions */}
+          <div className="mt-auto space-y-3 pt-6 border-t border-white/10">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-muted-foreground">Total Price</span>
+              <span className="font-bold font-mono">₹2,999</span>
+            </div>
+            <Button onClick={handleAddToCart} size="lg" className="w-full font-bold uppercase tracking-widest shadow-glow hover:shadow-glow-lg transition-all" variant="default">
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Add to Cart
+            </Button>
+            <Button className="w-full" variant="outline" size="sm">
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Design
+            </Button>
           </div>
         </div>
       </div>

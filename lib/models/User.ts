@@ -34,6 +34,7 @@ const UserSchema = new Schema<IUser>(
       required: function () {
         return this.provider === "email";
       },
+      select: false,
     },
     picture: {
       type: String,
@@ -41,7 +42,8 @@ const UserSchema = new Schema<IUser>(
     },
     googleId: {
       type: String,
-      unique: true, // This already creates an index
+      unique: true,
+      sparse: true,
     },
     isEmailVerified: {
       type: Boolean,
@@ -64,7 +66,7 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Export the model, ensuring we don't recompile if it already exists

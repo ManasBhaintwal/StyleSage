@@ -24,19 +24,11 @@ export async function GET(request: NextRequest) {
           callbackUrl = parsed.callbackUrl;
         }
       } catch (e) {
-        console.warn("Failed to parse state parameter:", e);
+        // Failed to parse state parameter
       }
     }
 
-    console.log("OAuth callback received:", {
-      hasState: !!state,
-      hasCode: !!code,
-      error,
-      callbackUrl,
-    });
-
     if (error) {
-      console.error("OAuth error:", error);
       const callbackPageUrl = new URL("/auth/callback/google", request.url);
       callbackPageUrl.searchParams.set("error", error);
       callbackPageUrl.searchParams.set("message", error);
@@ -44,7 +36,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!code) {
-      console.error("Missing authorization code");
       const callbackPageUrl = new URL("/auth/callback/google", request.url);
       callbackPageUrl.searchParams.set("error", "no_code");
       callbackPageUrl.searchParams.set("message", "Missing authorization code");
@@ -52,15 +43,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Exchange code for tokens
-    console.log("Exchanging authorization code for tokens...");
     const tokens = await exchangeCodeForTokens(code);
 
     // Get user info from Google
-    console.log("Fetching user information from Google...");
     const googleUser = await getGoogleUserInfo(tokens.access_token);
 
     // Check if user exists or create new user
-    console.log("Setting up user account...");
     let user = await getUserByEmail(googleUser.email);
 
     if (!user) {
@@ -69,15 +57,13 @@ export async function GET(request: NextRequest) {
         email: googleUser.email,
         name: googleUser.name,
         picture: googleUser.picture,
-        role: googleUser.email === "admin@stylesage.com" ? "admin" : "user",
+        role: "user",
         provider: "google",
         googleId: googleUser.id,
       });
-      console.log("Created new user:", user.email);
     } else {
       // Update last login
       await updateUserLastLogin(user._id.toString());
-      console.log("Updated existing user login:", user.email);
     }
 
     // Create JWT token
@@ -94,8 +80,6 @@ export async function GET(request: NextRequest) {
     if (!redirectUrl || redirectUrl === "/auth") {
       redirectUrl = "/";
     }
-
-    console.log("Redirecting to:", redirectUrl);
 
     // Redirect to the client-side callback page with success parameters
     const callbackPageUrl = new URL("/auth/callback/google", request.url);
@@ -116,7 +100,6 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error("OAuth callback error:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Authentication failed";
     const callbackPageUrl = new URL("/auth/callback/google", request.url);

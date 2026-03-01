@@ -11,14 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Settings,
-  ShoppingBag,
-  Heart,
-  LogOut,
-  Shield,
-  User,
-} from "lucide-react";
+import { ShoppingBag, LogOut, Shield, User } from "lucide-react";
 import Link from "next/link";
 
 interface UserData {
@@ -92,7 +85,7 @@ export function UserMenu() {
           } catch (error) {
             console.error(
               "Failed to parse user data from storage event:",
-              error
+              error,
             );
             setUser(null);
           }
@@ -132,9 +125,7 @@ export function UserMenu() {
   };
 
   if (isLoading) {
-    return (
-      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-    );
+    return <div className="w-8 h-8 bg-muted rounded-full animate-pulse" />;
   }
 
   if (!user) {
@@ -143,7 +134,7 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+          className="text-muted-foreground hover:text-foreground"
         >
           Sign In
         </Button>
@@ -187,7 +178,7 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile" className="cursor-pointer">
+          <Link href="/orders" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </Link>
@@ -196,18 +187,6 @@ export function UserMenu() {
           <Link href="/orders" className="cursor-pointer">
             <ShoppingBag className="mr-2 h-4 w-4" />
             <span>My Orders</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/wishlist" className="cursor-pointer">
-            <Heart className="mr-2 h-4 w-4" />
-            <span>Wishlist</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/settings" className="cursor-pointer">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
           </Link>
         </DropdownMenuItem>
         {user.role === "admin" && (

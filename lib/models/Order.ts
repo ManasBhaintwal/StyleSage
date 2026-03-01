@@ -29,7 +29,8 @@ export interface IOrder {
     razorpaySignature?: string;
     amount: number;
     currency: string;
-    status: "pending" | "completed" | "failed";
+    status: "pending" | "completed" | "failed" | "refunded" | "refund_failed";
+    razorpayRefundId?: string;
   };
   orderStatus: "placed" | "confirmed" | "shipped" | "delivered" | "cancelled";
   subtotal: number;
@@ -65,11 +66,12 @@ const PaymentSchema = new mongoose.Schema({
   razorpayOrderId: { type: String, required: true },
   razorpayPaymentId: { type: String },
   razorpaySignature: { type: String },
+  razorpayRefundId: { type: String },
   amount: { type: Number, required: true },
   currency: { type: String, required: true, default: "INR" },
   status: {
     type: String,
-    enum: ["pending", "completed", "failed"],
+    enum: ["pending", "completed", "failed", "refunded", "refund_failed"],
     default: "pending",
   },
 });
@@ -95,8 +97,11 @@ const OrderSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
+
+OrderSchema.index({ userId: 1, createdAt: -1 });
+OrderSchema.index({ createdAt: -1 });
 
 const Order =
   mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);

@@ -3,184 +3,155 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  getCategories,
-  getNavbarConfig,
-  type Category,
-  type NavbarConfig,
-} from "@/lib/catalog";
-import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Package } from "lucide-react";
+import { Menu, Package, Info } from "lucide-react";
+import { CartBadge } from "@/components/cart-badge";
+import { ThemeToggle } from "@/components/theme-toggle";
+
+const DEFAULT_NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/collections", label: "Collections" },
+  { href: "/anime", label: "Anime" },
+  { href: "/meme", label: "Meme" },
+  { href: "/custom", label: "Custom" },
+];
 
 interface DynamicNavbarProps {
   currentPath?: string;
 }
 
 export function DynamicNavbar({ currentPath = "" }: DynamicNavbarProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [navbarConfig, setNavbarConfig] = useState<NavbarConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [navLinks, setNavLinks] = useState(DEFAULT_NAV_LINKS);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const loadNavbarData = () => {
+    const loadNavbarData = async () => {
       try {
-        const categoriesData = getCategories();
-        const configData = getNavbarConfig();
-
-        setCategories(categoriesData);
-        setNavbarConfig(configData);
+        // Fetch dynamic config
+        const res = await fetch("/api/config/navbar");
+        if (res.ok) {
+          const data = await res.json();
+          if (
+            data.config &&
+            data.config.content &&
+            data.config.content.length > 0
+          ) {
+            setNavLinks(
+              data.config.content.map((link: any) => ({
+                href: link.href,
+                label: link.label || link.name,
+              })),
+            );
+          }
+        }
       } catch (error) {
         console.error("Failed to load navbar data:", error);
-      } finally {
-        setIsLoading(false);
+        // DEFAULT_NAV_LINKS already set as initial state
       }
     };
 
     loadNavbarData();
-
-    // Listen for storage changes to update navbar in real-time
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "stylesage_categories" || e.key === "stylesage_navbar") {
-        loadNavbarData();
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("storage", handleStorageChange);
-      return () => window.removeEventListener("storage", handleStorageChange);
-    }
   }, []);
 
-  if (!mounted || isLoading) {
-    return (
-      <>
-        <nav className="hidden md:flex space-x-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
-            />
-          ))}
-        </nav>
-        <div className="md:hidden">
-          <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-        </div>
-      </>
-    );
-  }
-
-  if (!navbarConfig) return null;
-
-  // Get active categories in order
-  // Always include 'collections' category, even if not active or missing
-  let activeCategories = categories
-    .filter(
-      (cat) => navbarConfig.categories.includes(cat.id) && cat.id !== "custom"
-    )
-    .sort((a, b) => a.order - b.order);
-
-  // If 'collections' is missing, add it from defaults
-  if (!activeCategories.find((cat) => cat.id === "collections")) {
-    activeCategories = [
-      {
-        id: "collections",
-        name: "Collections",
-        slug: "collections",
-        description: "Our curated collections",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      ...activeCategories,
-    ];
-  }
-
-  const activeLinks = navbarConfig.customLinks.filter((link) => link.isActive);
-
-  const navLinks = [
-    ...activeCategories.map((cat) => ({
-      href: `/${cat.slug}`,
-      label: cat.name,
-    })),
-    ...activeLinks.map((link) => ({ href: link.href, label: link.name })),
-  ];
+  // Safe fallback for loading state
+  if (!mounted) return null;
 
   return (
-    <>
-      {/* Desktop Navbar */}
-      <nav className="hidden md:flex space-x-8">
-        {activeCategories.map((category) => (
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Left Side: Logo */}
+        <div className="flex items-center space-x-8">
           <Link
-            key={category.id}
-            href={`/${category.slug}`}
-            className={`transition-colors ${
-              currentPath === `/${category.slug}`
-                ? "text-gray-900 dark:text-white font-medium border-b-2 border-blue-500"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            }`}
+            href="/"
+            className="flex items-center space-x-2 text-2xl font-bold font-display text-foreground uppercase tracking-widest hover:text-primary transition-colors"
           >
-            {category.name}
+            <Package className="h-8 w-8 text-primary" />
+            <span>StyleSage</span>
           </Link>
-        ))}
 
-        {activeLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`transition-colors ${
-              currentPath === link.href
-                ? "text-gray-900 dark:text-white font-medium border-b-2 border-purple-500"
-                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            {link.name}
-          </Link>
-        ))}
-      </nav>
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex space-x-6">
+            {navLinks.map((link) => {
+              // Determine if active: strict match or prefix match for some cases
+              const isActive =
+                currentPath === link.href ||
+                (link.href !== "/" && currentPath.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`transition-colors font-sans uppercase tracking-wide text-sm ${
+                    isActive
+                      ? "text-primary font-bold border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground hover:shadow-glow-text"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-      {/* Mobile Navbar */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <div className="flex flex-col gap-y-6 pt-6">
-              <Link href="/" className="flex items-center space-x-2 mb-4">
-                <Package className="h-8 w-8" />
-                <span className="text-xl font-bold">StyleSage</span>
-              </Link>
-              <nav className="flex flex-col gap-y-4">
-                {navLinks.map((link) => (
-                  <SheetClose asChild key={link.href}>
-                    <Link
-                      href={link.href}
-                      className={`text-lg ${
-                        currentPath === link.href
-                          ? "text-blue-600 dark:text-blue-400 font-medium"
-                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  </SheetClose>
-                ))}
-              </nav>
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Right Side: Actions & Mobile Menu */}
+        <div className="flex items-center space-x-4">
+          <CartBadge />
+
+          <div className="hidden md:flex">
+            <ThemeToggle />
+          </div>
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="bg-background border-r border-border"
+              >
+                <div className="flex flex-col gap-y-6 pt-6">
+                  <Link href="/" className="flex items-center space-x-2 mb-4">
+                    <Package className="h-8 w-8 text-primary" />
+                    <span className="text-xl font-bold font-display text-foreground uppercase">
+                      StyleSage
+                    </span>
+                  </Link>
+                  <nav className="flex flex-col gap-y-4">
+                    {navLinks.map((link) => (
+                      <SheetClose asChild key={link.href}>
+                        <Link
+                          href={link.href}
+                          className={`text-lg font-sans ${
+                            currentPath === link.href
+                              ? "text-primary font-bold"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      </SheetClose>
+                    ))}
+                  </nav>
+                  <div className="flex items-center gap-4 mt-auto">
+                    <ThemeToggle />
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
       </div>
-    </>
+    </header>
   );
 }
